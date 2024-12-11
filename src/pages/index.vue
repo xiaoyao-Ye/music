@@ -16,12 +16,12 @@ function go() {
   <div>
     <div i-carbon-campsite inline-block text-4xl />
     <p>
-      <a rel="noreferrer" href="https://github.com/antfu-collective/vitesse-lite" target="_blank">
-        Vitesse Lite
+      <a rel="noreferrer" href="https://github.com/xiaoyao-Ye/template" target="_blank">
+        Vitesse Lite + Electron + Shadcn-vue
       </a>
     </p>
     <p>
-      <em text-sm op75>Opinionated Vite Starter Template</em>
+      <em text-sm op75>Opinionated Starter Template</em>
     </p>
 
     <div py-4 />
@@ -34,13 +34,14 @@ function go() {
     />
 
     <div>
-      <button
-        class="m-3 text-sm btn"
+      <Button
+        size="sm"
+        class="m-3 text-sm"
         :disabled="!name"
         @click="go"
       >
         Go
-      </button>
+      </Button>
     </div>
   </div>
 </template>
