@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "target": "ESNext",
     "jsx": "preserve",
     "lib": ["DOM", "ESNext"],
     "baseUrl": ".",
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "Node",
     "paths": {
-      "~/*": ["src/*"]
+      "@/*": ["src/*"]
     },
     "resolveJsonModule": true,
     "types": [
@@ -19,13 +19,11 @@
     "strict": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
+    "noEmit": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "exclude": [
-    "dist",
-    "node_modules",
-    "eslint.config.js"
-  ]
+  "references": [{ "path": "./tsconfig.node.json" }],
+  "include": ["src"]
 }

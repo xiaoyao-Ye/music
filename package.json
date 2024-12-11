@@ -1,10 +1,24 @@
 {
   "type": "module",
+  "version": "0.0.0",
   "private": true,
   "packageManager": "pnpm@9.14.4",
+  "description": "A music application",
+  "author": "_Ghosteye <Ghosteye@yeah.net>",
+  "license": "MIT",
+  "keywords": [
+    "music",
+    "electron"
+  ],
+  "main": "dist-electron/main/index.js",
+  "debug": {
+    "env": {
+      "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344/"
+    }
+  },
   "scripts": {
-    "build": "vite build",
-    "dev": "vite --port 3333 --open",
+    "build": "vue-tsc --noEmit && vite build && electron-builder",
+    "dev": "vite",
     "lint": "eslint .",
     "typecheck": "vue-tsc --noEmit",
     "preview": "vite preview",
@@ -27,6 +41,8 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue-macros/volar": "^0.30.6",
     "@vue/test-utils": "^2.4.6",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
     "eslint": "^9.16.0",
     "eslint-plugin-format": "^0.1.3",
     "jsdom": "^25.0.1",
@@ -41,6 +57,8 @@
     "unplugin-vue-macros": "^2.13.4",
     "unplugin-vue-router": "^0.10.8",
     "vite": "^6.0.2",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6",
     "vitest": "^2.1.8",
     "vue-tsc": "^2.1.10"
   },
