@@ -5,7 +5,7 @@ const playerStore = usePlayerStore()
 const scrollTopEl = ref<HTMLElement>()
 const showBackToTop = ref(false)
 
-// 初始化时添加滚动监听
+// 初始化时添加滚动监听和媒体按键监听
 onMounted(() => {
   const handleScroll = () => {
     if (!scrollTopEl.value)
@@ -15,9 +15,61 @@ onMounted(() => {
 
   scrollTopEl.value?.addEventListener('scroll', handleScroll)
 
+  // 媒体按键监听
+  const handleMediaKeys = (e: MediaSessionActionEvent) => {
+    switch (e.action) {
+      case 'play':
+        if (playerStore.currentMusic)
+          playerStore.playMusic(playerStore.currentMusic)
+        break
+      case 'pause':
+        if (playerStore.currentMusic)
+          playerStore.playMusic(playerStore.currentMusic)
+        break
+      case 'previoustrack':
+        playerStore.playPrev()
+        break
+      case 'nexttrack':
+        playerStore.playNext()
+        break
+    }
+  }
+
+  // 设置 MediaSession
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => handleMediaKeys({ action: 'play' }))
+    navigator.mediaSession.setActionHandler('pause', () => handleMediaKeys({ action: 'pause' }))
+    navigator.mediaSession.setActionHandler('previoustrack', () => handleMediaKeys({ action: 'previoustrack' }))
+    navigator.mediaSession.setActionHandler('nexttrack', () => handleMediaKeys({ action: 'nexttrack' }))
+  }
+
+  // 添加键盘事件监听
+  const handleKeydown = (e: KeyboardEvent) => {
+    // 如果正在输入，不处理快捷键
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+      return
+
+    if (e.code === 'Space') {
+      e.preventDefault() // 阻止空格键的默认行为（页面滚动）
+      if (playerStore.currentMusic)
+        playerStore.playMusic(playerStore.currentMusic)
+    }
+  }
+
+  window.addEventListener('keydown', handleKeydown)
+
   // 清理监听器
   onUnmounted(() => {
     scrollTopEl.value?.removeEventListener('scroll', handleScroll)
+    window.removeEventListener('keydown', handleKeydown)
+
+    // 清理 MediaSession 处理器
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', null)
+      navigator.mediaSession.setActionHandler('pause', null)
+      navigator.mediaSession.setActionHandler('previoustrack', null)
+      navigator.mediaSession.setActionHandler('nexttrack', null)
+    }
   })
 })
 

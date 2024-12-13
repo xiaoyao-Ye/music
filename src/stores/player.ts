@@ -114,6 +114,11 @@ export const usePlayerStore = defineStore('player', () => {
         audioPlayer.value.play()
 
       isPlaying.value = !isPlaying.value
+
+      // 更新媒体会话状态
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = isPlaying.value ? 'playing' : 'paused'
+      }
       return
     }
 
@@ -122,6 +127,19 @@ export const usePlayerStore = defineStore('player', () => {
     audioPlayer.value.src = `music://${music.path}`
     audioPlayer.value.play()
     isPlaying.value = true
+
+    // 更新媒体会话信息
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: music.title,
+        artist: music.artist,
+        album: music.album,
+        artwork: music.cover
+          ? [{ src: music.cover, sizes: '512x512', type: 'image/jpeg' }]
+          : undefined,
+      })
+      navigator.mediaSession.playbackState = 'playing'
+    }
   }
 
   // 设置音量
