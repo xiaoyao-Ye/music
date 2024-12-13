@@ -61,11 +61,6 @@ onMounted(() => {
   loadFromStorage()
   playerStore.init()
 })
-
-// 双击播放处理函数
-function handleMusicDoubleClick(music: AudioMetadata) {
-  playerStore.playMusic(music)
-}
 </script>
 
 <template>
@@ -92,6 +87,7 @@ function handleMusicDoubleClick(music: AudioMetadata) {
         <div class="flex gap-4">
           <Button
             variant="outline"
+            size="sm"
             :disabled="!musicFiles.length"
             @click="playerStore.playFromStart"
           >
@@ -100,6 +96,7 @@ function handleMusicDoubleClick(music: AudioMetadata) {
           </Button>
           <Button
             variant="outline"
+            size="sm"
             :disabled="!musicFiles.length"
             @click="playerStore.playRandom"
           >
@@ -137,14 +134,30 @@ function handleMusicDoubleClick(music: AudioMetadata) {
             v-for="(music) in musicFiles"
             :key="music.path"
             :value="music.path"
-            class="h-auto w-full"
-            @dblclick="handleMusicDoubleClick(music)"
+            class="group h-auto w-full"
+            :class="{ 'bg-stone-100 dark:bg-stone-800': music.path === playerStore.currentMusic?.path }"
+            @dblclick="playerStore.playMusic(music)"
           >
             <div class="w-full flex items-center gap-4 rounded-md py-2 text-left text-sm">
               <div class="flex flex-1 items-center gap-3">
                 <div
-                  class="h-10 w-10 overflow-hidden rounded bg-stone-200 dark:bg-stone-700"
+                  class="relative h-10 w-10 overflow-hidden rounded bg-stone-200 dark:bg-stone-700"
                 >
+                  <!-- 播放状态指示 -->
+                  <div
+                    class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100"
+                    @click.stop="playerStore.playMusic(music)"
+                  >
+                    <div
+                      class="z-1 cursor-pointer text-xl text-white"
+                      :class="[
+                        music.path === playerStore.currentMusic?.path && playerStore.isPlaying
+                          ? 'i-carbon:pause'
+                          : 'i-carbon:play',
+                      ]"
+                    />
+                  </div>
+                  <!-- 封面图片 -->
                   <img
                     v-if="music.cover"
                     :src="music.cover"
@@ -184,5 +197,7 @@ function handleMusicDoubleClick(music: AudioMetadata) {
 </template>
 
 <style scoped>
-
+.group:hover {
+  @apply bg-stone-50 dark:bg-stone-900;
+}
 </style>

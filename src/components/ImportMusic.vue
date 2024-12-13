@@ -35,6 +35,7 @@ async function handleSelectDirectory() {
     </Button> -->
     <Button
       variant="outline"
+      size="sm"
       @click="handleSelectDirectory"
     >
       <div i-carbon-folder />
