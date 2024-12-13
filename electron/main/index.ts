@@ -1,8 +1,95 @@
 /* eslint-disable node/prefer-global/process */
+import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { promisify } from 'node:util'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { parseFile } from 'music-metadata'
+
+// 添加这些新函数
+async function processAudioFile(filePath: string) {
+  try {
+    const metadata = await parseFile(filePath)
+    // const picture = metadata.common.picture?.[0]
+
+    // 将 Uint8Array 转换为 Buffer
+
+    // const buffer = Buffer.from(picture.data)
+
+    // 将 Buffer 转换为 Base64 字符串
+    // const base64String = buffer.toString('base64')
+
+    return {
+      path: filePath,
+      title: metadata.common.title || path.basename(filePath),
+      artist: metadata.common.artist || '未知艺术家',
+      album: metadata.common.album || '未知专辑',
+      duration: metadata.format.duration,
+      // cover: `data:${picture.format};base64,${base64String}`,
+    }
+  }
+  catch (error) {
+    console.error(`处理文件 ${filePath} 时出错:`, error)
+    return null
+  }
+}
+
+async function processDirectory(dirPath: string) {
+  const readdir = promisify(fs.readdir)
+  const stat = promisify(fs.stat)
+
+  try {
+    const files = await readdir(dirPath)
+    const audioFiles = []
+
+    for (const file of files) {
+      const filePath = path.join(dirPath, file)
+      const stats = await stat(filePath)
+
+      // eslint-disable-next-line regexp/no-unused-capturing-group
+      if (stats.isFile() && /\.(mp3|wav|ogg|flac|m4a)$/i.test(file)) {
+        const metadata = await processAudioFile(filePath)
+        if (metadata)
+          audioFiles.push(metadata)
+      }
+    }
+
+    return audioFiles
+  }
+  catch (error) {
+    console.error('处理目录时出错:', error)
+    return []
+  }
+}
+
+// 在 ipcMain 处理程序部分添加
+ipcMain.handle('select-files', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile', 'multiSelections'],
+    filters: [
+      { name: '音频文件', extensions: ['mp3', 'wav', 'ogg', 'flac', 'm4a'] },
+    ],
+  })
+
+  if (!result.canceled) {
+    const metadataPromises = result.filePaths.map(processAudioFile)
+    const metadata = await Promise.all(metadataPromises)
+    return metadata.filter(item => item !== null)
+  }
+  return []
+})
+
+ipcMain.handle('select-directory', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  })
+
+  if (!result.canceled) {
+    return await processDirectory(result.filePaths[0])
+  }
+  return []
+})
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -47,6 +134,8 @@ async function createWindow() {
   win = new BrowserWindow({
     title: 'Main window',
     icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
+    width: 1380,
+    height: 838,
     webPreferences: {
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production

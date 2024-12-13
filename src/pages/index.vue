@@ -1,70 +1,57 @@
 <script setup lang="ts">
-interface Song {
-  name: string
-  artist: string
-  album: string
-  duration: string
-  cover?: string
+import { formatDuration } from '@/utils/format'
+
+const STORAGE_KEY = 'music-list'
+const description = '"PV剧情"通常指的是与"PV"(Promotional Video，宣传视频) 相关的剧情内容，尤其在动漫、游戏等领域。它通常用于宣传作品，通过短片展示角色、情节、音乐等元素。'
+
+const musicFiles = ref<AudioMetadata[]>([])
+
+// 从 localStorage 加载数据
+function loadFromStorage() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored)
+      musicFiles.value = JSON.parse(stored)
+  }
+  catch (error) {
+    console.error('从本地存储加载音乐列表失败:', error)
+  }
 }
 
-const playList: Song[] = [
-  {
-    name: '秋水伊人（韩非与赢政）',
-    artist: '魏小涵',
-    album: '天行九歌 原声音乐',
-    duration: '2:15',
-    cover: '/image.jpeg',
-  },
-  {
-    name: '【全职高手同人】[叶修×苏沐秋]《落差——记苏沐秋》(pv剧情) (Cover...)',
-    artist: '殇小天',
-    album: '【全职高手同人】[叶修×苏沐秋]《落差——记苏沐秋》',
-    duration: '3:44',
-    cover: '/image.jpeg',
-  },
-  {
-    name: '十殿阎罗',
-    artist: '未知',
-    album: '',
-    duration: '2:18',
-  },
-  {
-    name: '我告诉你什么事最可恶 (Jones & Brock&RTRemix)',
-    artist: 'RT',
-    album: '大鱼海棠 &精鲲淑',
-    duration: '4:02',
-    cover: '/image.jpeg',
-  },
-  {
-    name: '秋水伊人（韩非与赢政）',
-    artist: '魏小涵',
-    album: '天行九歌 原声音乐',
-    duration: '2:15',
-    cover: '/image.jpeg',
-  },
-  {
-    name: '【全职高手同人】[叶修×苏沐秋]《落差——记苏沐秋》(pv剧情) (Cover...)',
-    artist: '殇小天',
-    album: '【全职高手同人】[叶修×苏沐秋]《落差——记苏沐秋》',
-    duration: '3:44',
-    cover: '/image.jpeg',
-  },
-  {
-    name: '十殿阎罗',
-    artist: '未知',
-    album: '',
-    duration: '2:18',
-  },
-  {
-    name: '我告诉你什么事最可恶 (Jones & Brock&RTRemix)',
-    artist: 'RT',
-    album: '大鱼海棠 &精鲲淑',
-    duration: '4:02',
-    cover: '/image.jpeg',
-  },
-]
+// 保存到 localStorage
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(musicFiles.value))
+  }
+  catch (error) {
+    console.error('保存音乐列表到本地存储失败:', error)
+  }
+}
 
-const description = '"PV剧情"通常指的是与"PV"(Promotional Video，宣传视频) 相关的剧情内容，尤其在动漫、游戏等领域。它通常用于宣传作品，通过短片展示角色、情节、音乐等元素。'
+function handleFilesUpdate(files: AudioMetadata[]) {
+  const newFiles = files.filter((newFile) => {
+    return !musicFiles.value.some(existingFile => existingFile.path === newFile.path)
+  })
+  if (newFiles.length !== files.length) {
+    // console.log('已跳过', files.length - newFiles.length, '个重复文件')
+  }
+
+  musicFiles.value = [...musicFiles.value, ...newFiles]
+  saveToStorage()
+}
+
+// 计算总时长和歌曲数量
+const totalInfo = computed(() => {
+  const count = musicFiles.value.length
+  const totalSeconds = musicFiles.value.reduce((sum, song) => sum + (song.duration || 0), 0)
+  const minutes = Math.floor(totalSeconds / 60)
+  return `${count} 首歌曲，${minutes} 分钟`
+})
+
+// 初始化时加载数据
+onMounted(() => {
+  loadFromStorage()
+})
 </script>
 
 <template>
@@ -97,6 +84,8 @@ const description = '"PV剧情"通常指的是与"PV"(Promotional Video，宣传
             <div i-carbon-shuffle />
             随机播放
           </Button>
+
+          <ImportMusic @files="handleFilesUpdate" />
         </div>
       </div>
     </div>
@@ -123,9 +112,9 @@ const description = '"PV剧情"通常指的是与"PV"(Promotional Video，宣传
       <div class="mt-2">
         <ToggleGroup type="single" class="flex-col">
           <ToggleGroupItem
-            v-for="(song) in playList"
-            :key="song.name"
-            :value="song.name"
+            v-for="(music) in musicFiles"
+            :key="music.path"
+            :value="music.path"
             class="h-auto w-full"
           >
             <div class="w-full flex items-center gap-4 rounded-md py-2 text-left text-sm">
@@ -135,34 +124,37 @@ const description = '"PV剧情"通常指的是与"PV"(Promotional Video，宣传
                     class="h-10 w-10 overflow-hidden rounded bg-stone-200 dark:bg-stone-700"
                   >
                     <img
-                      v-if="song.cover"
-                      :src="song.cover"
-                      :alt="song.name"
+                      v-if="music.cover"
+                      :src="music.cover"
+                      :alt="music.title"
                       class="h-full w-full object-cover"
                     >
                     <div v-else class="h-full w-full p-1">
                       <div i-game-icons:sound-on class="h-full w-full" />
                     </div>
                   </div>
-                  <span class="flex-1 truncate">{{ song.name }}</span>
+                  <span class="max-w-sm flex-1 truncate">{{ music.title }}</span>
                 </div>
               </div>
               <div class="w-30 text-stone-500">
-                {{ song.artist }}
+                {{ music.artist }}
               </div>
               <div class="w-50 truncate text-stone-500">
-                {{ song.album }}
+                {{ music.album }}
               </div>
               <div class="w-30 text-right text-stone-500">
-                {{ song.duration }}
+                {{ formatDuration(music.duration) }}
               </div>
             </div>
           </ToggleGroupItem>
         </ToggleGroup>
+        <div v-if="musicFiles.length === 0" class="py-10 text-center text-sm text-stone-500">
+          去导入一些音乐吧~
+        </div>
       </div>
       <!-- 底部信息 -->
       <div class="p-4 text-sm text-stone-500">
-        <span>4 首歌曲，12 分钟</span>
+        <span>{{ totalInfo }}</span>
       </div>
     </div>
   </div>

@@ -9,3 +9,12 @@ interface Window {
   // expose in the `electron/preload/index.ts`
   ipcRenderer: import('electron').IpcRenderer
 }
+
+interface AudioMetadata {
+  path: string
+  title: string
+  artist?: string
+  album?: string
+  duration?: number
+  cover?: string
+}
