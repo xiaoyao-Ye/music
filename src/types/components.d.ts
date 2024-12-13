@@ -8,10 +8,17 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Button: typeof import('./../components/ui/button/Button.vue')['default']
+    Footer: typeof import('./../components/Footer.vue')['default']
+    ImportMusic: typeof import('./../components/ImportMusic.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Sidebar: typeof import('./../components/Sidebar.vue')['default']
     TheCounter: typeof import('./../components/TheCounter.vue')['default']
     TheFooter: typeof import('./../components/TheFooter.vue')['default']
     TheInput: typeof import('./../components/TheInput.vue')['default']
+    Toggle: typeof import('./../components/ui/toggle/Toggle.vue')['default']
+    ToggleGroup: typeof import('./../components/ui/toggle-group/ToggleGroup.vue')['default']
+    ToggleGroupItem: typeof import('./../components/ui/toggle-group/ToggleGroupItem.vue')['default']
+    Xx: typeof import('./../components/xx.vue')['default']
   }
 }

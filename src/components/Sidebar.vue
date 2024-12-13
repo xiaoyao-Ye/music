@@ -14,11 +14,11 @@ const active = ref(menus[0].name)
 
 <template>
   <!-- 左侧边栏 -->
-  <div class="w-60 flex flex-col border-r border-stone-200 dark:border-stone-800">
+  <div class="w-55 flex flex-col border-r border-stone-200 dark:border-stone-800">
     <!-- Logo -->
     <div class="flex items-center gap-2 p-4">
       <div i-game-icons:sound-on class="h-14 w-14" />
-      <div class="text-3xl font-bold">
+      <div class="pr-4 text-3xl font-bold">
         Music
       </div>
     </div>

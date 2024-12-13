@@ -4,7 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, protocol, shell } from 'electron'
 import { parseFile } from 'music-metadata'
 
 // 添加这些新函数
@@ -136,6 +136,8 @@ async function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
     width: 1380,
     height: 838,
+    minWidth: 996,
+    minHeight: 600,
     webPreferences: {
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
@@ -170,7 +172,21 @@ async function createWindow() {
   // win.webContents.on('will-navigate', (event, url) => { }) #344
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  // 注册自定义协议
+  protocol.registerFileProtocol('music', (request, callback) => {
+    const filePath = decodeURI(request.url.replace('music://', ''))
+    try {
+      return callback(filePath)
+    }
+    catch (error) {
+      console.error(error)
+      return callback({ error: -2 })
+    }
+  })
+
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   win = null

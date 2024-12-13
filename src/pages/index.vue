@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { usePlayerStore } from '@/stores/player'
 import { formatDuration } from '@/utils/format'
 
 const STORAGE_KEY = 'music-list'
@@ -6,12 +7,17 @@ const description = '"PV剧情"通常指的是与"PV"(Promotional Video，宣传
 
 const musicFiles = ref<AudioMetadata[]>([])
 
+const playerStore = usePlayerStore()
+
 // 从 localStorage 加载数据
 function loadFromStorage() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored)
+    if (stored) {
       musicFiles.value = JSON.parse(stored)
+      // 设置播放列表
+      playerStore.setPlaylist(musicFiles.value)
+    }
   }
   catch (error) {
     console.error('从本地存储加载音乐列表失败:', error)
@@ -37,6 +43,8 @@ function handleFilesUpdate(files: AudioMetadata[]) {
   }
 
   musicFiles.value = [...musicFiles.value, ...newFiles]
+  // 更新播放列表
+  playerStore.setPlaylist(musicFiles.value)
   saveToStorage()
 }
 
@@ -51,7 +59,13 @@ const totalInfo = computed(() => {
 // 初始化时加载数据
 onMounted(() => {
   loadFromStorage()
+  playerStore.init()
 })
+
+// 双击播放处理函数
+function handleMusicDoubleClick(music: AudioMetadata) {
+  playerStore.playMusic(music)
+}
 </script>
 
 <template>
@@ -97,13 +111,13 @@ onMounted(() => {
         <div class="flex-1">
           歌曲
         </div>
-        <div class="w-30">
+        <div class="w-25">
           艺人
         </div>
-        <div class="w-50">
+        <div class="lg:w-40 sm:w-30">
           专辑
         </div>
-        <div class="w-30 text-right">
+        <div class="w-15 text-right">
           时长
         </div>
       </div>
@@ -116,33 +130,34 @@ onMounted(() => {
             :key="music.path"
             :value="music.path"
             class="h-auto w-full"
+            @dblclick="handleMusicDoubleClick(music)"
           >
             <div class="w-full flex items-center gap-4 rounded-md py-2 text-left text-sm">
-              <div class="flex-1">
-                <div class="flex items-center gap-3">
-                  <div
-                    class="h-10 w-10 overflow-hidden rounded bg-stone-200 dark:bg-stone-700"
+              <div class="flex flex-1 items-center gap-3">
+                <div
+                  class="h-10 w-10 overflow-hidden rounded bg-stone-200 dark:bg-stone-700"
+                >
+                  <img
+                    v-if="music.cover"
+                    :src="music.cover"
+                    :alt="music.title"
+                    class="h-full w-full object-cover"
                   >
-                    <img
-                      v-if="music.cover"
-                      :src="music.cover"
-                      :alt="music.title"
-                      class="h-full w-full object-cover"
-                    >
-                    <div v-else class="h-full w-full p-1">
-                      <div i-game-icons:sound-on class="h-full w-full" />
-                    </div>
+                  <div v-else class="h-full w-full p-1">
+                    <div i-game-icons:sound-on class="h-full w-full" />
                   </div>
-                  <span class="max-w-sm flex-1 truncate">{{ music.title }}</span>
                 </div>
+                <span class="truncate lg:max-w-xs sm:max-w-50">
+                  {{ music.title }}
+                </span>
               </div>
-              <div class="w-30 text-stone-500">
+              <div class="w-25 text-stone-500">
                 {{ music.artist }}
               </div>
-              <div class="w-50 truncate text-stone-500">
+              <div class="truncate text-stone-500 lg:w-40 sm:w-30">
                 {{ music.album }}
               </div>
-              <div class="w-30 text-right text-stone-500">
+              <div class="w-15 text-right text-stone-500">
                 {{ formatDuration(music.duration) }}
               </div>
             </div>
