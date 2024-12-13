@@ -1,20 +1,52 @@
 import { defineStore } from 'pinia'
 
+// 播放模式枚举
+export enum PlayMode {
+  Sequence = 'sequence', // 顺序播放
+  Loop = 'loop', // 单曲循环
+  Random = 'random', // 随机播放
+}
+
 export const usePlayerStore = defineStore('player', () => {
   // 状态
   const currentMusic = ref<AudioMetadata | null>(null)
   const isPlaying = ref(false)
   const audioPlayer = ref<HTMLAudioElement | null>(null)
   const playlist = ref<AudioMetadata[]>([])
+  const volume = ref(0.3) // 音量范围 0-1
+  const mute = ref(false)
+  const currentTime = ref(0)
+  const duration = ref(0)
+  const playMode = ref<PlayMode>(PlayMode.Sequence)
 
   // 初始化
   function init() {
     if (!audioPlayer.value) {
       audioPlayer.value = new Audio()
+      // 设置初始音量
+      audioPlayer.value.volume = volume.value
       audioPlayer.value.addEventListener('ended', () => {
         isPlaying.value = false
-        // 播放结束后自动播放下一首
-        playNext()
+        // 根据播放模式决定下一首
+        if (playMode.value === PlayMode.Loop) {
+          // 单曲循环，重新播放当前歌曲
+          audioPlayer.value?.play()
+          isPlaying.value = true
+        }
+        else {
+          // 顺序或随机播放下一首
+          playNext()
+        }
+      })
+
+      // 监听时间更新
+      audioPlayer.value.addEventListener('timeupdate', () => {
+        currentTime.value = audioPlayer.value?.currentTime || 0
+      })
+
+      // 监听音频加载完成
+      audioPlayer.value.addEventListener('loadedmetadata', () => {
+        duration.value = audioPlayer.value?.duration || 0
       })
     }
   }
@@ -48,9 +80,23 @@ export const usePlayerStore = defineStore('player', () => {
     if (playlist.value.length === 0)
       return
 
-    let newIndex = currentIndex.value + 1
-    if (newIndex >= playlist.value.length)
-      newIndex = 0
+    let newIndex: number
+
+    if (playMode.value === PlayMode.Random) {
+      // 随机模式：随机选择一首（排除当前歌曲）
+      const availableIndices = Array.from(
+        { length: playlist.value.length },
+        (_, i) => i,
+      ).filter(i => i !== currentIndex.value)
+
+      newIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)]
+    }
+    else {
+      // 顺序模式：下一首
+      newIndex = currentIndex.value + 1
+      if (newIndex >= playlist.value.length)
+        newIndex = 0
+    }
 
     playMusic(playlist.value[newIndex])
   }
@@ -78,15 +124,95 @@ export const usePlayerStore = defineStore('player', () => {
     isPlaying.value = true
   }
 
+  // 设置音量
+  function setVolume(value: number) {
+    if (!audioPlayer.value)
+      return
+
+    // 将百分比转换为 0-1 范围
+    const normalizedVolume = value / 100
+    volume.value = normalizedVolume
+    audioPlayer.value.volume = normalizedVolume
+    mute.value = volume.value === 0
+  }
+
+  // 静音切换
+  function toggleMute() {
+    if (!audioPlayer.value)
+      return
+
+    if (audioPlayer.value.volume > 0) {
+      audioPlayer.value.volume = 0
+      mute.value = true
+    }
+    else {
+      audioPlayer.value.volume = volume.value
+      mute.value = false
+    }
+  }
+
+  // 设置播放进度
+  function setProgress(value: number) {
+    if (!audioPlayer.value)
+      return
+
+    const time = (value / 100) * duration.value
+    audioPlayer.value.currentTime = time
+    currentTime.value = time
+  }
+
+  // 切换播放模式
+  function togglePlayMode() {
+    const modes = Object.values(PlayMode)
+    const currentIndex = modes.indexOf(playMode.value)
+    const nextIndex = (currentIndex + 1) % modes.length
+    playMode.value = modes[nextIndex]
+  }
+
+  // 从头开始播放列表
+  function playFromStart() {
+    if (playlist.value.length === 0)
+      return
+
+    if (playMode.value === PlayMode.Random)
+      togglePlayMode()
+
+    playMusic(playlist.value[0])
+  }
+
+  // 开始随机播放
+  function playRandom() {
+    if (playlist.value.length === 0)
+      return
+
+    // 设置为随机播放模式
+    playMode.value = PlayMode.Random
+
+    // 随机选择一首歌开始播放
+    const randomIndex = Math.floor(Math.random() * playlist.value.length)
+    playMusic(playlist.value[randomIndex])
+  }
+
   return {
     currentMusic,
     isPlaying,
+    mute,
     playlist,
     currentIndex,
+    volume,
     init,
     setPlaylist,
     playMusic,
     playNext,
     playPrev,
+    setVolume,
+    toggleMute,
+    currentTime,
+    duration,
+    setProgress,
+    playMode,
+    togglePlayMode,
+    playFromStart,
+    playRandom,
   }
 })

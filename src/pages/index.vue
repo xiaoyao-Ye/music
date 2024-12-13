@@ -90,12 +90,20 @@ function handleMusicDoubleClick(music: AudioMetadata) {
           </p>
         </div>
         <div class="flex gap-4">
-          <Button variant="outline">
+          <Button
+            variant="outline"
+            :disabled="!musicFiles.length"
+            @click="playerStore.playFromStart"
+          >
             <div i-carbon-play />
             播放
           </Button>
-          <Button variant="outline">
-            <div i-carbon-shuffle />
+          <Button
+            variant="outline"
+            :disabled="!musicFiles.length"
+            @click="playerStore.playRandom"
+          >
+            <div i-carbon:shuffle />
             随机播放
           </Button>
 

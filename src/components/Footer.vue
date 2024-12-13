@@ -1,13 +1,48 @@
 <script setup lang="ts">
-import { usePlayerStore } from '@/stores/player'
+import { PlayMode, usePlayerStore } from '@/stores/player'
+import { formatDuration } from '@/utils/format'
 
 const playerStore = usePlayerStore()
+
+// 音量控制
+const volume = computed({
+  get: () => [playerStore.volume * 100],
+  set: ([value]) => {
+    if (typeof value === 'number')
+      playerStore.setVolume(value)
+  },
+})
+
+// 进度控制
+const progress = computed({
+  get: () => {
+    if (!playerStore.duration)
+      return [0]
+    return [(playerStore.currentTime / playerStore.duration) * 100]
+  },
+  set: ([value]) => {
+    if (typeof value === 'number')
+      playerStore.setProgress(value)
+  },
+})
 
 // 播放/暂停切换
 function togglePlay() {
   if (playerStore.currentMusic)
     playerStore.playMusic(playerStore.currentMusic)
 }
+
+// 播放模式图标映射
+const playModeIcon = computed(() => {
+  switch (playerStore.playMode) {
+    case PlayMode.Loop:
+      return 'i-carbon:repeat-one'
+    case PlayMode.Random:
+      return 'i-carbon:shuffle'
+    default:
+      return 'i-carbon:repeat'
+  }
+})
 </script>
 
 <template>
@@ -26,8 +61,12 @@ function togglePlay() {
 
     <div class="w-2/4 flex flex-col px-8">
       <div class="flex items-center justify-center">
-        <Button variant="ghost">
-          <div i-carbon:edt-loop />
+        <!-- 播放模式 -->
+        <Button
+          variant="ghost"
+          @click="playerStore.togglePlayMode"
+        >
+          <div :class="playModeIcon" />
         </Button>
         <Button
           variant="ghost"
@@ -51,24 +90,42 @@ function togglePlay() {
         >
           <div i-carbon:triangle-right-outline />
         </Button>
-        <Button variant="ghost">
-          <div i-carbon:volume-up />
-          <!-- <div i-carbon:volume-mute />
-          <div i-carbon:volume-down />
-          <div i-carbon:volume-down-alt />
-          <div i-carbon:volume-up-alt /> -->
-        </Button>
+        <div class="w-12" />
       </div>
-      <div class="mt-2 flex items-center gap-3">
-        <span class="text-xs text-stone-500">00:00</span>
-        <div class="h-1 w-sm flex-1 rounded-full bg-stone-200 dark:bg-stone-700">
-          <div class="h-full w-1/3 rounded-full bg-stone-500" />
+      <div class="mt-1 flex items-center justify-center gap-3">
+        <span class="text-xs text-stone-500">
+          {{ formatDuration(playerStore.currentTime) }}
+        </span>
+        <div class="slider h-1 w-xs">
+          <Slider
+            v-model="progress"
+            :max="100"
+            :step="0.1"
+          />
         </div>
-        <span class="text-xs text-stone-500">00:00</span>
+        <span class="text-xs text-stone-500">
+          {{ formatDuration(playerStore.duration) }}
+        </span>
       </div>
     </div>
 
-    <div class="w-1/4 flex items-center justify-end gap-2">
+    <!-- 音量控制 -->
+    <div class="w-1/4 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <div
+          class="cursor-pointer"
+          :class="[playerStore.mute ? 'i-carbon:volume-mute' : 'i-carbon:volume-up']"
+          @click="playerStore.toggleMute"
+        />
+        <div class="slider w-25">
+          <Slider
+            v-model="volume"
+            :max="100"
+            :step="1"
+          />
+        </div>
+      </div>
+
       <Button variant="ghost" size="icon">
         <div i-carbon-list />
       </Button>
@@ -77,5 +134,8 @@ function togglePlay() {
 </template>
 
 <style scoped>
-
+:deep(.slider) * {
+  outline: none;
+  box-shadow: none;
+}
 </style>
