@@ -29,7 +29,9 @@ const progress = computed({
 // 播放/暂停切换
 function togglePlay() {
   if (playerStore.currentMusic)
-    playerStore.playMusic(playerStore.currentMusic)
+    playerStore.playMusic()
+  else
+    playerStore.playMusic(playerStore.playlist[0])
 }
 
 // 播放模式图标映射

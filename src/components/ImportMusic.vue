@@ -12,14 +12,18 @@ const emit = defineEmits<{
 //     console.error('选择文件时出错:', error)
 //   }
 // }
-
+const isImporting = ref(false)
 async function handleSelectDirectory() {
   try {
+    isImporting.value = true
     const files = await window.ipcRenderer.invoke('select-directory')
     emit('files', files)
   }
   catch (error) {
     console.error('选择目录时出错:', error)
+  }
+  finally {
+    isImporting.value = false
   }
 }
 </script>
@@ -36,10 +40,11 @@ async function handleSelectDirectory() {
     <Button
       variant="outline"
       size="sm"
+      :disabled="isImporting"
       @click="handleSelectDirectory"
     >
       <div i-carbon-folder />
-      从文件夹导入
+      {{ isImporting ? '导入中...' : '从文件夹导入' }}
     </Button>
   </div>
 </template>

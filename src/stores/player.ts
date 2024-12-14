@@ -9,23 +9,24 @@ export enum PlayMode {
 
 export const usePlayerStore = defineStore('player', () => {
   // 状态
-  const currentMusic = ref<AudioMetadata | null>(null)
+  const currentMusic = ref<AudioMetadata | undefined>()
   const isPlaying = ref(false)
   const audioPlayer = ref<HTMLAudioElement | null>(null)
   const playlist = ref<AudioMetadata[]>([])
-  const volume = ref(0.3) // 音量范围 0-1
-  const mute = ref(false)
   const currentTime = ref(0)
   const duration = ref(0)
-  const playMode = ref<PlayMode>(PlayMode.Sequence)
+  const volume = useStorage('player-volume', 0.3)
+  const mute = useStorage('player-mute', false)
+  const playMode = useStorage('player-mode', PlayMode.Sequence)
 
   // 初始化
   function init() {
     if (!audioPlayer.value) {
       audioPlayer.value = new Audio()
       // 设置初始音量
-      audioPlayer.value.volume = volume.value
-      audioPlayer.value.addEventListener('ended', () => {
+      audioPlayer.value.volume = mute.value ? 0 : volume.value
+
+      useEventListener(audioPlayer, 'ended', () => {
         isPlaying.value = false
         // 根据播放模式决定下一首
         if (playMode.value === PlayMode.Loop) {
@@ -40,12 +41,12 @@ export const usePlayerStore = defineStore('player', () => {
       })
 
       // 监听时间更新
-      audioPlayer.value.addEventListener('timeupdate', () => {
+      useEventListener(audioPlayer, 'timeupdate', () => {
         currentTime.value = audioPlayer.value?.currentTime || 0
       })
 
       // 监听音频加载完成
-      audioPlayer.value.addEventListener('loadedmetadata', () => {
+      useEventListener(audioPlayer, 'loadedmetadata', () => {
         duration.value = audioPlayer.value?.duration || 0
       })
     }
@@ -102,8 +103,8 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   // 播放控制
-  function playMusic(music: AudioMetadata) {
-    if (!audioPlayer.value)
+  function playMusic(music: AudioMetadata | undefined = currentMusic.value) {
+    if (!audioPlayer.value || !music)
       return
 
     // 如果是同一首歌

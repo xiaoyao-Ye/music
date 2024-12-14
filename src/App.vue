@@ -2,98 +2,59 @@
 import { usePlayerStore } from '@/stores/player'
 
 const playerStore = usePlayerStore()
-const scrollTopEl = ref<HTMLElement>()
-const showBackToTop = ref(false)
 
-// 初始化时添加滚动监听和媒体按键监听
-onMounted(() => {
-  const handleScroll = () => {
-    if (!scrollTopEl.value)
-      return
-    showBackToTop.value = scrollTopEl.value.scrollTop > 300
+// 滚动到顶部
+const scrollEl = ref<HTMLElement>()
+const { y: scrollY } = useScroll(scrollEl, { behavior: 'smooth' })
+
+// 滚动到当前播放的音乐
+function scrollToCurrentMusic() {
+  const currentMusicEl = document.querySelector(`[value="${playerStore.currentMusic!.path}"]`)
+  if (currentMusicEl) {
+    currentMusicEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
+}
 
-  scrollTopEl.value?.addEventListener('scroll', handleScroll)
+// 空格键控制播放/暂停
+onKeyStroke(' ', (e) => {
+  // 如果正在输入，不处理快捷键
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+    return
+    // 阻止空格键的默认行为（页面滚动）
+  e.preventDefault()
+  playerStore.playMusic()
+}, { eventName: 'keydown' })
 
+// 初始化时添加媒体按键监听
+onMounted(() => {
   // 媒体按键监听
-  const handleMediaKeys = (e: MediaSessionActionEvent) => {
-    switch (e.action) {
-      case 'play':
-        if (playerStore.currentMusic)
-          playerStore.playMusic(playerStore.currentMusic)
-        break
-      case 'pause':
-        if (playerStore.currentMusic)
-          playerStore.playMusic(playerStore.currentMusic)
-        break
-      case 'previoustrack':
-        playerStore.playPrev()
-        break
-      case 'nexttrack':
-        playerStore.playNext()
-        break
+  const handleMediaKeys = (type: MediaSessionAction) => {
+    if (type === 'play' || type === 'pause') {
+      playerStore.playMusic()
+    }
+    else if (type === 'previoustrack') {
+      playerStore.playPrev()
+    }
+    else if (type === 'nexttrack') {
+      playerStore.playNext()
     }
   }
 
   // 设置 MediaSession
-  if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('play', () => handleMediaKeys({ action: 'play' }))
-    navigator.mediaSession.setActionHandler('pause', () => handleMediaKeys({ action: 'pause' }))
-    navigator.mediaSession.setActionHandler('previoustrack', () => handleMediaKeys({ action: 'previoustrack' }))
-    navigator.mediaSession.setActionHandler('nexttrack', () => handleMediaKeys({ action: 'nexttrack' }))
-  }
-
-  // 添加键盘事件监听
-  const handleKeydown = (e: KeyboardEvent) => {
-    // 如果正在输入，不处理快捷键
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
-      return
-
-    if (e.code === 'Space') {
-      e.preventDefault() // 阻止空格键的默认行为（页面滚动）
-      if (playerStore.currentMusic)
-        playerStore.playMusic(playerStore.currentMusic)
-    }
-  }
-
-  window.addEventListener('keydown', handleKeydown)
-
-  // 清理监听器
-  onUnmounted(() => {
-    scrollTopEl.value?.removeEventListener('scroll', handleScroll)
-    window.removeEventListener('keydown', handleKeydown)
-
-    // 清理 MediaSession 处理器
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.setActionHandler('play', null)
-      navigator.mediaSession.setActionHandler('pause', null)
-      navigator.mediaSession.setActionHandler('previoustrack', null)
-      navigator.mediaSession.setActionHandler('nexttrack', null)
-    }
-  })
-})
-
-// 滚动到当前播放的音乐
-function scrollToCurrentMusic() {
-  if (!playerStore.currentMusic)
-    return
-
-  const currentMusicEl = document.querySelector(`[value="${playerStore.currentMusic.path}"]`)
-  if (currentMusicEl) {
-    currentMusicEl.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
+  function setMediaSession(fn: ((type: MediaSessionAction) => void) | null) {
+    const mediaSessions: MediaSessionAction[] = ['play', 'pause', 'previoustrack', 'nexttrack']
+    mediaSessions.forEach((session) => {
+      const handler = fn ? () => fn(session) : null
+      navigator.mediaSession.setActionHandler(session, handler)
     })
   }
-}
+  setMediaSession(handleMediaKeys)
 
-// 滚动到顶部
-function scrollToTop() {
-  scrollTopEl.value?.scrollTo({
-    top: 0,
-    behavior: 'smooth',
+  // 清理 MediaSession
+  onUnmounted(() => {
+    setMediaSession(null)
   })
-}
+})
 </script>
 
 <template>
@@ -115,7 +76,7 @@ function scrollToTop() {
         </div>
 
         <div
-          ref="scrollTopEl"
+          ref="scrollEl"
           class="flex-1 overflow-y-scroll"
         >
           <RouterView />
@@ -140,11 +101,11 @@ function scrollToTop() {
 
       <!-- 回到顶部按钮 -->
       <Button
-        v-show="showBackToTop"
+        v-show="scrollY > 300"
         class="rounded-full shadow-lg transition-transform"
         variant="ghost"
         size="icon"
-        @click="scrollToTop"
+        @click="scrollY = 0"
       >
         <div i-carbon:arrow-up class="text-lg" />
       </Button>

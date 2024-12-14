@@ -2,50 +2,27 @@
 import { usePlayerStore } from '@/stores/player'
 import { formatDuration } from '@/utils/format'
 
-const STORAGE_KEY = 'music-list'
 const description = '"PV剧情"通常指的是与"PV"(Promotional Video，宣传视频) 相关的剧情内容，尤其在动漫、游戏等领域。它通常用于宣传作品，通过短片展示角色、情节、音乐等元素。'
 
-const musicFiles = ref<AudioMetadata[]>([])
+// 使用 useStorage 替换手动的 localStorage 操作
+const musicFiles = useStorage<AudioMetadata[]>('music-list', [])
 
 const playerStore = usePlayerStore()
 
-// 从 localStorage 加载数据
-function loadFromStorage() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      musicFiles.value = JSON.parse(stored)
-      // 设置播放列表
-      playerStore.setPlaylist(musicFiles.value)
-    }
-  }
-  catch (error) {
-    console.error('从本地存储加载音乐列表失败:', error)
-  }
-}
-
-// 保存到 localStorage
-function saveToStorage() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(musicFiles.value))
-  }
-  catch (error) {
-    console.error('保存音乐列表到本地存储失败:', error)
-  }
-}
-
+// 处理文件更新
 function handleFilesUpdate(files: AudioMetadata[]) {
+  // 过滤掉重复的文件
   const newFiles = files.filter((newFile) => {
     return !musicFiles.value.some(existingFile => existingFile.path === newFile.path)
   })
-  if (newFiles.length !== files.length) {
-    // console.log('已跳过', files.length - newFiles.length, '个重复文件')
-  }
 
+  // if (newFiles.length !== files.length) {
+  // console.log('已跳过', files.length - newFiles.length, '个重复文件')
+  // }
+
+  // 更新列表和播放列表
   musicFiles.value = [...musicFiles.value, ...newFiles]
-  // 更新播放列表
   playerStore.setPlaylist(musicFiles.value)
-  saveToStorage()
 }
 
 // 计算总时长和歌曲数量
@@ -56,10 +33,10 @@ const totalInfo = computed(() => {
   return `${count} 首歌曲，${minutes} 分钟`
 })
 
-// 初始化时加载数据
+// 初始化
 onMounted(() => {
-  loadFromStorage()
   playerStore.init()
+  playerStore.setPlaylist(musicFiles.value)
 })
 </script>
 

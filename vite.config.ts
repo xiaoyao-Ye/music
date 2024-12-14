@@ -135,6 +135,11 @@ export default defineConfig(({ command }) => {
     // https://github.com/vitest-dev/vitest
     test: {
       environment: 'jsdom',
+      globals: true,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html'],
+      },
     },
   }
 })
