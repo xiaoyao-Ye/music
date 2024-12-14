@@ -4,8 +4,8 @@ import { usePlayerStore } from '@/stores/player'
 const playerStore = usePlayerStore()
 
 // 滚动到顶部
-const scrollEl = ref<HTMLElement>()
-const { y: scrollY } = useScroll(scrollEl, { behavior: 'smooth' })
+const scrollTopEl = ref<HTMLElement>()
+const { y: scrollTopY } = useScroll(scrollTopEl, { behavior: 'smooth' })
 
 // 滚动到当前播放的音乐
 function scrollToCurrentMusic() {
@@ -27,6 +27,8 @@ onKeyStroke(' ', (e) => {
 
 // 初始化时添加媒体按键监听
 onMounted(() => {
+  // 初始化
+  playerStore.init()
   // 媒体按键监听
   const handleMediaKeys = (type: MediaSessionAction) => {
     if (type === 'play' || type === 'pause') {
@@ -76,7 +78,7 @@ onMounted(() => {
         </div>
 
         <div
-          ref="scrollEl"
+          ref="scrollTopEl"
           class="flex-1 overflow-y-scroll"
         >
           <RouterView />
@@ -101,11 +103,11 @@ onMounted(() => {
 
       <!-- 回到顶部按钮 -->
       <Button
-        v-show="scrollY > 300"
+        v-show="scrollTopY > 300"
         class="rounded-full shadow-lg transition-transform"
         variant="ghost"
         size="icon"
-        @click="scrollY = 0"
+        @click="scrollTopY = 0"
       >
         <div i-carbon:arrow-up class="text-lg" />
       </Button>

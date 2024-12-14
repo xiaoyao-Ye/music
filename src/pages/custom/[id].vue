@@ -3,7 +3,21 @@ import { usePlayerStore } from '@/stores/player'
 
 const playerStore = usePlayerStore()
 
-const musicList = useStorage<AudioMetadata[]>('music-list', [])
+interface CustomPlaylist {
+  id: string
+  title: string
+  description: string
+  coverImage?: string
+  count: number
+}
+// 获取路由参数id
+const route = useRoute('/custom/[id]')
+const id = route.params.id
+const customPlaylists = useStorage<CustomPlaylist[]>('custom-playlists', [])
+const customPlaylist = customPlaylists.value.find(item => item.id === id)!
+const musicList = useStorage<AudioMetadata[]>(id, [])
+// TODO: 更新自定义歌单的歌曲数量
+// customPlaylist.count = musicList.value.length
 
 // 处理文件更新
 function handleFilesUpdate(files: AudioMetadata[]) {
@@ -28,8 +42,8 @@ onMounted(() => {
 
 <template>
   <MusicList
-    title="本地音乐"
-    description="这里是本地的音乐文件"
+    :title="customPlaylist.title"
+    :description="customPlaylist.description"
     :music-list="musicList"
   >
     <template #actions>

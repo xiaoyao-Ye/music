@@ -54,6 +54,9 @@ export const usePlayerStore = defineStore('player', () => {
 
   // 设置播放列表
   function setPlaylist(list: AudioMetadata[]) {
+    if (list.length === 0)
+      return
+
     playlist.value = list
   }
 
