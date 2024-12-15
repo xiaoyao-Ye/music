@@ -18,3 +18,11 @@ interface AudioMetadata {
   duration?: number
   cover?: string
 }
+
+export interface CustomPlaylist {
+  id: string
+  title: string
+  description: string
+  coverImage?: string
+  count: number
+}

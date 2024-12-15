@@ -3,7 +3,13 @@
 const favoritesList = useStorage<AudioMetadata[]>('favorites-list', [])
 const recentList = useStorage<AudioMetadata[]>('recent-list', [])
 const localList = useStorage<AudioMetadata[]>('music-list', [])
+const customPlaylists = useStorage<CustomPlaylist[]>('custom-playlists', [])
 
+const router = useRouter()
+const route = useRoute()
+const active = ref(route.path)
+
+// 系统菜单
 const menus = computed(() => [
   {
     icon: 'i-carbon-favorite',
@@ -25,31 +31,8 @@ const menus = computed(() => [
   },
 ])
 
-// const customMenus = [
-//   { icon: 'i-carbon-settings', name: '里外三公里', count: 888, router: '' },
-//   { icon: 'i-carbon-settings', name: '安静', count: 888, router: '' },
-//   { icon: 'i-carbon-settings', name: '电音/纯音乐', count: 888, router: '' },
-// ]
-
-const router = useRouter()
-const route = useRoute()
-const active = ref(route.path)
-
-function handleMenuClick(path: string) {
-  router.push(path)
-}
-
-const customPlaylists = useStorage<CustomPlaylist[]>('custom-playlists', [])
-
-interface CustomPlaylist {
-  id: string
-  title: string
-  description: string
-  coverImage?: string
-  count: number
-}
-
 const showDialog = ref(false)
+
 function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
   const id = crypto.randomUUID()
   customPlaylists.value.push({
@@ -58,6 +41,10 @@ function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
     count: 0,
   })
   useStorage(id, [])
+}
+
+function handleMenuClick(path: string) {
+  router.push(path)
 }
 </script>
 
@@ -81,7 +68,7 @@ function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
       <ToggleGroup v-model="active" type="single" class="flex-col">
         <ToggleGroupItem
           v-for="menu in menus"
-          :key="menu.name"
+          :key="menu.path"
           :value="menu.path"
           class="w-full justify-start gap-2"
           @click="handleMenuClick(menu.path)"
@@ -99,10 +86,16 @@ function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
     <div class="flex-1 p-4">
       <div class="flex items-center justify-between pb-2">
         <span class="text-sm text-stone-500">自建歌单</span>
-        <Button variant="ghost" size="icon" class="icon-btn h-6 w-6" @click="showDialog = true">
+        <Button
+          variant="ghost"
+          size="icon"
+          class="icon-btn h-6 w-6"
+          @click="showDialog = true"
+        >
           <div i-carbon-add />
         </Button>
       </div>
+
       <ToggleGroup v-model="active" type="single" class="flex-col">
         <ToggleGroupItem
           v-for="playlist in customPlaylists"
@@ -135,7 +128,3 @@ function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
     />
   </div>
 </template>
-
-<style scoped>
-
-</style>

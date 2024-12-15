@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import AudioController from '@/components/Controller/AudioController.vue'
+import VolumeControl from '@/components/Controller/VolumeControl.vue'
 import { usePlayerStore } from '@/stores/player'
-import AudioController from './AudioController.vue'
-import VolumeControl from './VolumeControl.vue'
 
 const playerStore = usePlayerStore()
 </script>

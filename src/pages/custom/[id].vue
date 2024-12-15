@@ -3,13 +3,6 @@ import { usePlayerStore } from '@/stores/player'
 
 const playerStore = usePlayerStore()
 
-interface CustomPlaylist {
-  id: string
-  title: string
-  description: string
-  coverImage?: string
-  count: number
-}
 // 获取路由参数id
 const route = useRoute('/custom/[id]')
 const id = route.params.id
