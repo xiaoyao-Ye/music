@@ -50,7 +50,7 @@ interface CustomPlaylist {
 }
 
 const showDialog = ref(false)
-function handleCreateList(form: CustomPlaylist) {
+function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
   const id = crypto.randomUUID()
   customPlaylists.value.push({
     ...form,
@@ -78,7 +78,7 @@ function handleCreateList(form: CustomPlaylist) {
         我的音乐
       </div>
 
-      <ToggleGroup v-model="active" class="flex-col">
+      <ToggleGroup v-model="active" type="single" class="flex-col">
         <ToggleGroupItem
           v-for="menu in menus"
           :key="menu.name"
@@ -103,11 +103,11 @@ function handleCreateList(form: CustomPlaylist) {
           <div i-carbon-add />
         </Button>
       </div>
-      <ToggleGroup v-model="active" class="flex-col">
+      <ToggleGroup v-model="active" type="single" class="flex-col">
         <ToggleGroupItem
           v-for="playlist in customPlaylists"
           :key="playlist.id"
-          :value="playlist.id"
+          :value="`/custom/${playlist.id}`"
           class="h-13 w-full justify-start gap-2 text-left"
           @click="router.push(`/custom/${playlist.id}`)"
         >
