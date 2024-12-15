@@ -1,14 +1,11 @@
 <script setup lang="ts">
-const props = defineProps<{
-  modelValue: boolean
-}>()
+import UploadImage from './UploadImage.vue'
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  'submit': [form: FormData]
+  submit: [form: FormData]
 }>()
 
-const data = useVModel(props, 'modelValue', emit)
+const data = defineModel<boolean>()
 
 interface FormData {
   title: string
@@ -36,6 +33,7 @@ function handleCreate() {
   form.title = form.title.trim() ? form.title : '未命名歌单'
   // console.log('======= form ( CreatePlaylistDialog.vue ) =======\n', form)
   emit('submit', form)
+  data.value = false
 }
 </script>
 

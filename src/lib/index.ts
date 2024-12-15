@@ -1,3 +1,7 @@
+export function randomUUID() {
+  return crypto.randomUUID()
+}
+
 export function formatDuration(seconds?: number): string {
   if (!seconds)
     return '00:00'

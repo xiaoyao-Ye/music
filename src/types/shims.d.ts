@@ -19,10 +19,11 @@ interface AudioMetadata {
   cover?: string
 }
 
-export interface CustomPlaylist {
+interface CustomPlaylist {
   id: string
   title: string
   description: string
   coverImage?: string
+  icon?: string
   count: number
 }

@@ -1,13 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{
-  modelValue: string
-}>()
-
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
-
-const data = useVModel(props, 'modelValue', emit)
+const data = defineModel<string>()
 
 // const imagePreview = ref<string | null>(null)
 

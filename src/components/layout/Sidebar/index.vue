@@ -1,50 +1,30 @@
 <script setup lang="ts">
-// 获取各个列表的数据
-const favoritesList = useStorage<AudioMetadata[]>('favorites-list', [])
-const recentList = useStorage<AudioMetadata[]>('recent-list', [])
-const localList = useStorage<AudioMetadata[]>('music-list', [])
-const customPlaylists = useStorage<CustomPlaylist[]>('custom-playlists', [])
+import { LOCAL_UUID, MENU_INFO, USER_MENU_INFO } from '@/config'
+import { randomUUID } from '@/lib'
+import CreateListDialog from './CreateListDialog.vue'
 
 const router = useRouter()
-const route = useRoute()
-const active = ref(route.path)
 
-// 系统菜单
-const menus = computed(() => [
-  {
-    icon: 'i-carbon-favorite',
-    name: '喜欢',
-    count: favoritesList.value.length,
-    path: '/favorites',
-  },
-  {
-    icon: 'i-carbon-recently-viewed',
-    name: '最近播放',
-    count: recentList.value.length,
-    path: '/recent',
-  },
-  {
-    icon: 'i-carbon-download',
-    name: '本地和下载',
-    count: localList.value.length,
-    path: '/',
-  },
+const active = ref(LOCAL_UUID)
+const userMenus = useStorage<CustomPlaylist[]>(USER_MENU_INFO, [])
+const menus = useStorage<CustomPlaylist[]>(MENU_INFO, [
+  { id: randomUUID(), icon: 'i-carbon-favorite', title: '喜欢', description: '喜欢的音乐', count: 0 },
+  { id: randomUUID(), icon: 'i-carbon-recently-viewed', title: '最近播放', description: '最近播放的音乐', count: 0 },
+  { id: LOCAL_UUID, icon: 'i-carbon-download', title: '本地和下载', description: '本地和下载的音乐', count: 0 },
 ])
 
-const showDialog = ref(false)
-
-function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
-  const id = crypto.randomUUID()
-  customPlaylists.value.push({
-    ...form,
-    id,
-    count: 0,
-  })
-  useStorage(id, [])
+function handleMenuClick(menu: CustomPlaylist) {
+  const url = menu.title === '本地和下载' ? '/' : `/list/${menu.id}`
+  router.push(url)
 }
 
-function handleMenuClick(path: string) {
-  router.push(path)
+const showDialog = ref(false)
+function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
+  const id = randomUUID()
+  userMenus.value.push({ ...form, id, count: 0 })
+  useStorage(id, [])
+  router.push(`/list/${id}`)
+  active.value = id
 }
 </script>
 
@@ -68,14 +48,14 @@ function handleMenuClick(path: string) {
       <ToggleGroup v-model="active" type="single" class="flex-col">
         <ToggleGroupItem
           v-for="menu in menus"
-          :key="menu.path"
-          :value="menu.path"
+          :key="menu.id"
+          :value="menu.id"
           class="w-full justify-start gap-2"
-          @click="handleMenuClick(menu.path)"
+          @click="handleMenuClick(menu)"
         >
           <div :class="menu.icon" />
           <div>
-            {{ menu.name }}
+            {{ menu.title }}
             <span class="text-stone-500">· {{ menu.count }}</span>
           </div>
         </ToggleGroupItem>
@@ -98,24 +78,24 @@ function handleMenuClick(path: string) {
 
       <ToggleGroup v-model="active" type="single" class="flex-col">
         <ToggleGroupItem
-          v-for="playlist in customPlaylists"
-          :key="playlist.id"
-          :value="`/custom/${playlist.id}`"
+          v-for="menu in userMenus"
+          :key="menu.id"
+          :value="menu.id"
           class="h-13 w-full justify-start gap-2 text-left"
-          @click="router.push(`/custom/${playlist.id}`)"
+          @click="handleMenuClick(menu)"
         >
           <div class="h-9 w-9 overflow-hidden rounded-md bg-stone-200 dark:bg-stone-700">
             <img
-              v-if="playlist.coverImage"
-              :src="playlist.coverImage"
-              :alt="playlist.title"
+              v-if="menu.coverImage"
+              :src="menu.coverImage"
+              :alt="menu.title"
               class="h-full w-full object-cover"
             >
           </div>
           <div>
-            <div>{{ playlist.title }}</div>
+            <div>{{ menu.title }}</div>
             <div class="text-sm text-stone-500">
-              {{ playlist.count }} 首
+              {{ menu.count }} 首
             </div>
           </div>
         </ToggleGroupItem>

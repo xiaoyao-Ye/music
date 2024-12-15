@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import Footer from './Footer/index.vue'
+import Main from './Main/index.vue'
+import Sidebar from './Sidebar/index.vue'
 </script>
 
 <template>
@@ -9,6 +12,6 @@
       <Main />
     </div>
 
-    <FooterBar />
+    <Footer />
   </div>
 </template>
