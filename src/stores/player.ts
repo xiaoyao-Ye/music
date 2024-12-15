@@ -15,9 +15,37 @@ export const usePlayerStore = defineStore('player', () => {
   const playlist = ref<AudioMetadata[]>([])
   const currentTime = ref(0)
   const duration = ref(0)
-  const volume = useStorage('player-volume', 0.3)
-  const mute = useStorage('player-mute', false)
-  const playMode = useStorage('player-mode', PlayMode.Sequence)
+  const volume = useStorage<number>('player-volume', 0.3)
+  const mute = useStorage<boolean>('player-mute', false)
+  const playMode = useStorage<PlayMode>('player-mode', PlayMode.Sequence)
+
+  // 音量控制 - 直接返回数组格式
+  const volumePercent = computed({
+    get: () => [volume.value * 100],
+    set: ([value]: number[]) => {
+      if (typeof value === 'number') {
+        volume.value = value / 100
+        if (audioPlayer.value)
+          audioPlayer.value.volume = volume.value
+      }
+    },
+  })
+
+  // 进度控制 - 直接返回数组格式
+  const progressPercent = computed({
+    get: () => {
+      if (!duration.value)
+        return [0]
+      return [(currentTime.value / duration.value) * 100]
+    },
+    set: ([value]: number[]) => {
+      if (!audioPlayer.value || typeof value !== 'number')
+        return
+      const time = (value / 100) * duration.value
+      audioPlayer.value.currentTime = time
+      currentTime.value = time
+    },
+  })
 
   // 初始化
   function init() {
@@ -146,18 +174,6 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
-  // 设置音量
-  function setVolume(value: number) {
-    if (!audioPlayer.value)
-      return
-
-    // 将百分比转换为 0-1 范围
-    const normalizedVolume = value / 100
-    volume.value = normalizedVolume
-    audioPlayer.value.volume = normalizedVolume
-    mute.value = volume.value === 0
-  }
-
   // 静音切换
   function toggleMute() {
     if (!audioPlayer.value)
@@ -171,16 +187,6 @@ export const usePlayerStore = defineStore('player', () => {
       audioPlayer.value.volume = volume.value
       mute.value = false
     }
-  }
-
-  // 设置播放进度
-  function setProgress(value: number) {
-    if (!audioPlayer.value)
-      return
-
-    const time = (value / 100) * duration.value
-    audioPlayer.value.currentTime = time
-    currentTime.value = time
   }
 
   // 切换播放模式
@@ -221,17 +227,16 @@ export const usePlayerStore = defineStore('player', () => {
     mute,
     playlist,
     currentIndex,
-    volume,
+    volumePercent,
     init,
     setPlaylist,
     playMusic,
     playNext,
     playPrev,
-    setVolume,
     toggleMute,
     currentTime,
     duration,
-    setProgress,
+    progressPercent,
     playMode,
     togglePlayMode,
     playFromStart,

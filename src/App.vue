@@ -86,7 +86,7 @@ onMounted(() => {
       </main>
     </div>
 
-    <Footer />
+    <FooterBar />
 
     <!-- 悬浮按钮组 -->
     <div class="fixed bottom-24 right-6 z-10 flex flex-col gap-2">
