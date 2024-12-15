@@ -3,6 +3,7 @@ import { LOCAL_UUID, MENU_INFO } from '@/config'
 import { usePlayerStore } from '@/stores/player'
 import { computed } from 'vue'
 import ImportMusic from './ImportMusic.vue'
+import Image from '/public/image.jpeg'
 
 const props = withDefaults(defineProps<Props>(), {
   showImport: false,
@@ -58,7 +59,7 @@ function handleFilesUpdate(files: AudioMetadata[]) {
   <div class="flex gap-6 p-6">
     <div class="h-[270px] w-[270px] overflow-hidden rounded-lg">
       <img
-        :src="info.coverImage || '/image.jpeg'"
+        :src="info.coverImage || Image"
         :alt="info.title"
         class="h-full w-full object-cover"
       >

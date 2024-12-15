@@ -132,8 +132,8 @@ const indexHtml = path.join(RENDERER_DIST, 'index.html')
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: 'Main window',
-    icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
+    title: 'Music',
+    icon: path.join(process.env.VITE_PUBLIC, 'voice.iconset/icon_512x512.png'),
     width: 1380,
     height: 838,
     minWidth: 996,
