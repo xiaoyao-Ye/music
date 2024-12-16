@@ -23,6 +23,7 @@ function handlePlay() {
         <div
           class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100"
           @click.stop="handlePlay"
+          @dblclick.stop
         >
           <div
             class="z-1 cursor-pointer text-xl text-white"

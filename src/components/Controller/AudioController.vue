@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { formatDuration } from '@/lib'
-import { PlayMode } from '@/stores/player/playMode'
+import { PlayMode } from '@/stores/player/playList'
 
 const props = defineProps<{
   playing: boolean

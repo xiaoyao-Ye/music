@@ -12,6 +12,11 @@ function handlePlay(music: AudioMetadata) {
   playerStore.setPlaylist(props.musicList)
   playerStore.playMusic(music)
 }
+
+function handlePlayFromStart(music: AudioMetadata) {
+  playerStore.setPlaylist(props.musicList)
+  playerStore.playMusicFromStart(music)
+}
 </script>
 
 <template>
@@ -22,7 +27,7 @@ function handlePlay(music: AudioMetadata) {
       :value="music.path"
       class="group h-auto w-full"
       :class="{ 'bg-stone-100 dark:bg-stone-800': music.path === playerStore.currentMusic?.path }"
-      @dblclick="handlePlay(music)"
+      @dblclick="handlePlayFromStart(music)"
     >
       <Item
         :music="music"

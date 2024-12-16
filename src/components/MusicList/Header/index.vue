@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { LOCAL_UUID, MENU_INFO } from '@/config'
 import { usePlayerStore } from '@/stores/player'
+import { PlayMode } from '@/stores/player/playList'
 import { computed } from 'vue'
 import ImportMusic from './ImportMusic.vue'
 import Image from '/public/image.jpeg'
@@ -26,13 +27,16 @@ const isDisabled = computed(() => !props.musicList.length)
 // 播放功能
 function handlePlay() {
   playerStore.setPlaylist(props.musicList)
-  playerStore.playFromStart()
+  if (playerStore.playMode === PlayMode.Random)
+    playerStore.togglePlayMode()
+  playerStore.playMusicFromStart(playerStore.currentList[0])
 }
 
 // 随机播放功能
 function handleRandomPlay() {
   playerStore.setPlaylist(props.musicList)
-  playerStore.playRandom()
+  playerStore.setPlayMode(PlayMode.Random)
+  playerStore.playMusicFromStart(playerStore.currentList[0])
 }
 
 // 处理文件更新

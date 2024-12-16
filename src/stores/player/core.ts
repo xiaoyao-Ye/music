@@ -1,7 +1,10 @@
 import { PLAY_MUTE, PLAY_VOLUME } from '@/config'
 import { defineStore } from 'pinia'
+import { useMediaSessionStore } from './mediaSession'
 
 export const usePlayerCoreStore = defineStore('playerCore', () => {
+  const mediaSessionStore = useMediaSessionStore()
+
   const audio = new Audio()
 
   const playing = ref(false)
@@ -10,18 +13,20 @@ export const usePlayerCoreStore = defineStore('playerCore', () => {
   const volume = useStorage<number>(PLAY_VOLUME, 0.3)
   const muted = useStorage<boolean>(PLAY_MUTE, false)
 
-  audio.onplaying = () => {
+  useEventListener(audio, 'playing', () => {
     playing.value = true
-  }
-  audio.onpause = () => {
+    mediaSessionStore.updateMediaPlayState(true)
+  })
+  useEventListener(audio, 'pause', () => {
     playing.value = false
-  }
-  audio.ontimeupdate = () => {
+    mediaSessionStore.updateMediaPlayState(false)
+  })
+  useEventListener(audio, 'timeupdate', () => {
     currentTime.value = audio.currentTime
-  }
-  audio.onloadedmetadata = () => {
+  })
+  useEventListener(audio, 'loadedmetadata', () => {
     duration.value = audio.duration
-  }
+  })
 
   // 音量控制 - 直接返回数组格式
   const volumePercent = computed({
@@ -45,15 +50,11 @@ export const usePlayerCoreStore = defineStore('playerCore', () => {
     },
   })
 
-  // 初始化
-  onMounted(() => {
-    audio.muted = muted.value
-    audio.volume = volume.value
-  })
-
-  function setMusic(url: string) {
-    audio.src = url
+  function play(music: AudioMetadata) {
+    audio.src = `music://${music.path}`
     audio.play()
+    mediaSessionStore.updateMediaMetadata(music)
+    mediaSessionStore.updateMediaPlayState(true)
   }
 
   // 静音切换
@@ -72,6 +73,6 @@ export const usePlayerCoreStore = defineStore('playerCore', () => {
     volumePercent,
     progressPercent,
     toggleMute,
-    setMusic,
+    play,
   }
 })
