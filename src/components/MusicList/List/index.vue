@@ -26,7 +26,7 @@ function handlePlay(music: AudioMetadata) {
     >
       <Item
         :music="music"
-        :is-playing="music.path === playerStore.currentMusic?.path && playerStore.isPlaying"
+        :playing="music.path === playerStore.currentMusic?.path && playerStore.playing"
         @play="handlePlay(music)"
       />
     </ToggleGroupItem>

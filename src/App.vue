@@ -15,16 +15,13 @@ onKeyStroke(' ', (e) => {
 
 // 初始化时添加媒体按键监听
 onMounted(() => {
-  // 初始化
-  playerStore.init()
-  // 媒体按键监听
   const handleMediaKeys = (type: MediaSessionAction) => {
     if (type === 'play' || type === 'pause')
       playerStore.playMusic()
     else if (type === 'previoustrack')
-      playerStore.playPrev()
+      playerStore.prevMusic()
     else if (type === 'nexttrack')
-      playerStore.playNext()
+      playerStore.nextMusic()
   }
 
   // 设置 MediaSession

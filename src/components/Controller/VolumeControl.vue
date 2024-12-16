@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   volume: number[]
-  mute: boolean
+  muted: boolean
 }>()
 
 const emit = defineEmits<{
@@ -17,7 +17,7 @@ const volume = useVModel(props, 'volume', emit)
     <div class="flex items-center gap-2">
       <div
         class="cursor-pointer"
-        :class="[mute ? 'i-carbon:volume-mute' : 'i-carbon:volume-up']"
+        :class="[muted ? 'i-carbon:volume-mute' : 'i-carbon:volume-up']"
         @click="emit('toggleMute')"
       />
       <div class="slider w-25">

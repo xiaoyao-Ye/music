@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { formatDuration } from '@/lib'
-import { PlayMode } from '@/stores/player'
+import { PlayMode } from '@/stores/player/playMode'
 
 const props = defineProps<{
-  isPlaying: boolean
+  playing: boolean
   playMode: PlayMode
   currentTime: number
   duration: number
@@ -56,7 +56,7 @@ const progress = useVModel(props, 'progress', emit)
       >
         <div
           text-lg
-          :class="isPlaying ? 'i-carbon-pause' : 'i-carbon-play-outline'"
+          :class="playing ? 'i-carbon-pause' : 'i-carbon-play-outline'"
         />
       </Button>
       <Button

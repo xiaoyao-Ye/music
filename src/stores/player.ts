@@ -1,114 +1,37 @@
-import { defineStore } from 'pinia'
-
-// 播放模式枚举
-export enum PlayMode {
-  Sequence = 'sequence', // 顺序播放
-  Loop = 'loop', // 单曲循环
-  Random = 'random', // 随机播放
-}
+import { defineStore, storeToRefs } from 'pinia'
+import { usePlayerCoreStore } from './player/core'
+import { useMediaSessionStore } from './player/mediaSession'
+import { usePlaylistStore } from './player/playList'
+import { PlayMode, usePlayModeStore } from './player/playMode'
 
 export const usePlayerStore = defineStore('player', () => {
-  // 状态
-  const currentMusic = ref<AudioMetadata | undefined>()
-  const isPlaying = ref(false)
-  const audioPlayer = ref<HTMLAudioElement | null>(null)
-  const playlist = ref<AudioMetadata[]>([])
-  const currentTime = ref(0)
-  const duration = ref(0)
-  const volume = useStorage<number>('player-volume', 0.3)
-  const mute = useStorage<boolean>('player-mute', false)
-  const playMode = useStorage<PlayMode>('player-mode', PlayMode.Sequence)
+  const playerCoreStore = usePlayerCoreStore()
+  const mediaSessionStore = useMediaSessionStore()
+  const playModeStore = usePlayModeStore()
+  const playlistStore = usePlaylistStore()
+  const { playlist, currentMusic, currentIndex } = storeToRefs(playlistStore)
+  const { playing, muted, currentTime, duration, volumePercent, progressPercent } = storeToRefs(playerCoreStore)
+  const { audio, setMusic, toggleMute } = playerCoreStore
+  const { playMode } = storeToRefs(playModeStore)
 
-  // 音量控制 - 直接返回数组格式
-  const volumePercent = computed({
-    get: () => [volume.value * 100],
-    set: ([value]: number[]) => {
-      if (typeof value === 'number') {
-        volume.value = value / 100
-        if (audioPlayer.value)
-          audioPlayer.value.volume = volume.value
-      }
-    },
-  })
-
-  // 进度控制 - 直接返回数组格式
-  const progressPercent = computed({
-    get: () => {
-      if (!duration.value)
-        return [0]
-      return [(currentTime.value / duration.value) * 100]
-    },
-    set: ([value]: number[]) => {
-      if (!audioPlayer.value || typeof value !== 'number')
-        return
-      const time = (value / 100) * duration.value
-      audioPlayer.value.currentTime = time
-      currentTime.value = time
-    },
-  })
-
-  // 初始化
-  function init() {
-    if (!audioPlayer.value) {
-      audioPlayer.value = new Audio()
-      // 设置初始音量
-      audioPlayer.value.volume = mute.value ? 0 : volume.value
-
-      useEventListener(audioPlayer, 'ended', () => {
-        isPlaying.value = false
-        // 根据播放模式决定下一首
-        if (playMode.value === PlayMode.Loop) {
-          // 单曲循环，重新播放当前歌曲
-          audioPlayer.value?.play()
-          isPlaying.value = true
-        }
-        else {
-          // 顺序或随机播放下一首
-          playNext()
-        }
-      })
-
-      // 监听时间更新
-      useEventListener(audioPlayer, 'timeupdate', () => {
-        currentTime.value = audioPlayer.value?.currentTime || 0
-      })
-
-      // 监听音频加载完成
-      useEventListener(audioPlayer, 'loadedmetadata', () => {
-        duration.value = audioPlayer.value?.duration || 0
-      })
+  onMounted(() => {
+    audio.onended = () => {
+      playMode.value === PlayMode.Loop ? audio.play() : nextMusic()
     }
-  }
-
-  // 设置播放列表
-  function setPlaylist(list: AudioMetadata[]) {
-    if (list.length === 0)
-      return
-
-    playlist.value = list
-  }
-
-  // 获取当前歌曲在播放列表中的索引
-  const currentIndex = computed(() => {
-    if (!currentMusic.value)
-      return -1
-    return playlist.value.findIndex(music => music.path === currentMusic.value?.path)
   })
 
-  // 播放上一首
-  function playPrev() {
+  function prevMusic() {
     if (playlist.value.length === 0)
       return
 
-    let newIndex = currentIndex.value - 1
-    if (newIndex < 0)
-      newIndex = playlist.value.length - 1
+    let prevIndex = currentIndex.value - 1
+    if (prevIndex < 0)
+      prevIndex = playlist.value.length - 1
 
-    playMusic(playlist.value[newIndex])
+    playMusic(playlist.value[prevIndex])
   }
 
-  // 播放下一首
-  function playNext() {
+  function nextMusic() {
     if (playlist.value.length === 0)
       return
 
@@ -135,86 +58,34 @@ export const usePlayerStore = defineStore('player', () => {
 
   // 播放控制
   function playMusic(music: AudioMetadata | undefined = currentMusic.value) {
-    if (!audioPlayer.value || !music)
+    if (!music)
       return
 
-    // 如果是同一首歌
     if (currentMusic.value?.path === music.path) {
-      if (isPlaying.value)
-        audioPlayer.value.pause()
-      else
-        audioPlayer.value.play()
-
-      isPlaying.value = !isPlaying.value
-
-      // 更新媒体会话状态
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = isPlaying.value ? 'playing' : 'paused'
-      }
-      return
-    }
-
-    // 播放新的歌曲
-    currentMusic.value = music
-    audioPlayer.value.src = `music://${music.path}`
-    audioPlayer.value.play()
-    isPlaying.value = true
-
-    // 更新媒体会话信息
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: music.title,
-        artist: music.artist,
-        album: music.album,
-        artwork: music.cover
-          ? [{ src: music.cover, sizes: '512x512', type: 'image/jpeg' }]
-          : undefined,
-      })
-      navigator.mediaSession.playbackState = 'playing'
-    }
-  }
-
-  // 静音切换
-  function toggleMute() {
-    if (!audioPlayer.value)
-      return
-
-    if (audioPlayer.value.volume > 0) {
-      audioPlayer.value.volume = 0
-      mute.value = true
+      playing.value ? audio.pause() : audio.play()
+      playing.value = !playing.value
     }
     else {
-      audioPlayer.value.volume = volume.value
-      mute.value = false
+      currentMusic.value = music
+      setMusic(`music://${music.path}`)
+      mediaSessionStore.updateMediaMetadata(music)
     }
-  }
 
-  // 切换播放模式
-  function togglePlayMode() {
-    const modes = Object.values(PlayMode)
-    const currentIndex = modes.indexOf(playMode.value)
-    const nextIndex = (currentIndex + 1) % modes.length
-    playMode.value = modes[nextIndex]
+    mediaSessionStore.updateMediaPlayState(playing.value)
   }
 
   // 从头开始播放列表
   function playFromStart() {
-    if (playlist.value.length === 0)
-      return
-
     if (playMode.value === PlayMode.Random)
-      togglePlayMode()
+      playModeStore.togglePlayMode()
 
     playMusic(playlist.value[0])
   }
 
   // 开始随机播放
   function playRandom() {
-    if (playlist.value.length === 0)
-      return
-
     // 设置为随机播放模式
-    playMode.value = PlayMode.Random
+    playModeStore.setPlayMode(PlayMode.Random)
 
     // 随机选择一首歌开始播放
     const randomIndex = Math.floor(Math.random() * playlist.value.length)
@@ -222,24 +93,22 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   return {
-    currentMusic,
-    isPlaying,
-    mute,
     playlist,
-    currentIndex,
-    volumePercent,
-    init,
-    setPlaylist,
-    playMusic,
-    playNext,
-    playPrev,
-    toggleMute,
+    currentMusic,
+    playMode,
+    playing,
+    muted,
     currentTime,
     duration,
+    volumePercent,
     progressPercent,
-    playMode,
-    togglePlayMode,
+    playMusic,
+    nextMusic,
+    prevMusic,
     playFromStart,
     playRandom,
+    toggleMute,
+    togglePlayMode: playModeStore.togglePlayMode,
+    setPlaylist: playlistStore.setPlaylist,
   }
 })

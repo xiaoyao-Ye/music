@@ -3,7 +3,7 @@ import { formatDuration } from '@/lib'
 
 const props = defineProps<{
   music: AudioMetadata
-  isPlaying: boolean
+  playing: boolean
 }>()
 
 const emit = defineEmits(['play'])
@@ -27,7 +27,7 @@ function handlePlay() {
           <div
             class="z-1 cursor-pointer text-xl text-white"
             :class="[
-              isPlaying ? 'i-carbon:pause' : 'i-carbon:play',
+              playing ? 'i-carbon:pause' : 'i-carbon:play',
             ]"
           />
         </div>

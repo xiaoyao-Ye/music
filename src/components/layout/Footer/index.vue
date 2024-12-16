@@ -24,20 +24,20 @@ const playerStore = usePlayerStore()
     <!-- 播放控制器 -->
     <AudioController
       v-model:progress="playerStore.progressPercent"
-      :is-playing="playerStore.isPlaying"
+      :playing="playerStore.playing"
       :play-mode="playerStore.playMode"
       :current-time="playerStore.currentTime"
       :duration="playerStore.duration"
       @play="playerStore.playMusic"
-      @prev="playerStore.playPrev"
-      @next="playerStore.playNext"
+      @prev="playerStore.prevMusic"
+      @next="playerStore.nextMusic"
       @toggle-mode="playerStore.togglePlayMode"
     />
 
     <!-- 音量控制 -->
     <VolumeControl
       v-model:volume="playerStore.volumePercent"
-      :mute="playerStore.mute"
+      :muted="playerStore.muted"
       @toggle-mute="playerStore.toggleMute"
     />
   </div>

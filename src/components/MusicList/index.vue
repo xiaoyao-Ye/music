@@ -11,11 +11,13 @@ const props = defineProps<{
 
 const menus = useStorage<CustomPlaylist[]>(MENU_INFO, [])
 const userMenus = useStorage<CustomPlaylist[]>(USER_MENU_INFO, [])
-const musicList = useStorage<AudioMetadata[]>(props.id, [])
-let menuInfo: CustomPlaylist
+const musicList = ref<AudioMetadata[]>([])
+const menuInfo = ref<CustomPlaylist>()
 
 watchEffect(() => {
-  menuInfo = [...menus.value, ...userMenus.value].find(item => item.id === props.id)!
+  menuInfo.value = [...menus.value, ...userMenus.value].find(item => item.id === props.id)!
+  const list = useStorage<AudioMetadata[]>(props.id, [])
+  musicList.value = list.value
 })
 </script>
 
