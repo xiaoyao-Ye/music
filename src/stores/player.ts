@@ -30,7 +30,7 @@ export const usePlayerStore = defineStore('player', () => {
     if (prevIndex < 0)
       prevIndex = currentList.value.length - 1
 
-    playMusic(currentList.value[prevIndex])
+    playMusicFromStart(currentList.value[prevIndex])
   }
 
   function nextMusic() {
@@ -41,7 +41,7 @@ export const usePlayerStore = defineStore('player', () => {
     if (nextIndex >= currentList.value.length)
       nextIndex = 0
 
-    playMusic(currentList.value[nextIndex])
+    playMusicFromStart(currentList.value[nextIndex])
   }
 
   // 播放控制
