@@ -7,7 +7,7 @@ import Vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import VueMacros from 'unplugin-vue-macros/vite'
+// import VueMacros from 'unplugin-vue-macros/vite'
 import { VueRouterAutoImports } from 'unplugin-vue-router'
 import VueRouter from 'unplugin-vue-router/vite'
 import { defineConfig } from 'vite'
@@ -28,6 +28,11 @@ export default defineConfig(({ command }) => {
       },
     },
     plugins: [
+      Vue({
+        script: {
+          defineModel: true,
+        },
+      }),
       electron({
         main: {
           // Shortcut of `build.lib.entry`
@@ -76,18 +81,18 @@ export default defineConfig(({ command }) => {
         renderer: {},
       }),
 
-      VueMacros({
-        defineOptions: false,
-        defineModels: false,
-        plugins: {
-          vue: Vue({
-            script: {
-              propsDestructure: true,
-              defineModel: true,
-            },
-          }),
-        },
-      }),
+      // VueMacros({
+      //   defineOptions: false,
+      //   defineModels: false,
+      //   plugins: {
+      //     vue: Vue({
+      //       script: {
+      //         propsDestructure: true,
+      //         defineModel: true,
+      //       },
+      //     }),
+      //   },
+      // }),
 
       // https://github.com/posva/unplugin-vue-router
       VueRouter({
