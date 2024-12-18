@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { USER_MENU_INFO } from '@/config'
+import { MENU_INFO, USER_MENU_INFO } from '@/config'
 
 const props = defineProps<{
   music: AudioMetadata
@@ -21,8 +21,27 @@ function handleAddToPlaylist(playlist: CustomPlaylist) {
   // 检查是否已经存在
   if (!list.value.some(item => item.path === props.music.path)) {
     list.value.push(props.music)
-    playlist.count++
+    playlist.count = list.value.length
   }
+}
+
+// 从当前歌单删除
+function handleDelete() {
+  const list = useStorage<AudioMetadata[]>(props.id, [])
+  const index = list.value.findIndex(item => item.path === props.music.path)
+  if (index !== -1) {
+    list.value.splice(index, 1)
+    updateMenuCount(list.value.length)
+  }
+}
+
+function updateMenuCount(count: number) {
+  const isUserMenu = userMenus.value.some(item => item.id === props.id)
+  const menus = useStorage<CustomPlaylist[]>(isUserMenu ? USER_MENU_INFO : MENU_INFO, [])
+  menus.value.forEach((item) => {
+    if (item.id === props.id)
+      item.count = count
+  })
 }
 </script>
 
@@ -55,6 +74,11 @@ function handleAddToPlaylist(playlist: CustomPlaylist) {
           </div>
         </ContextMenuSubContent>
       </ContextMenuSub>
+      <ContextMenuSeparator />
+      <ContextMenuItem @click="handleDelete">
+        <div i-carbon:trash-can class="mr-2" />
+        从歌单中删除
+      </ContextMenuItem>
     </ContextMenuContent>
   </ContextMenu>
 </template>
