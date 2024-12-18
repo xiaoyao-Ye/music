@@ -12,7 +12,7 @@ const props = defineProps<{
 const menus = useStorage<CustomPlaylist[]>(MENU_INFO, [])
 const userMenus = useStorage<CustomPlaylist[]>(USER_MENU_INFO, [])
 const musicList = ref<AudioMetadata[]>([])
-const menuInfo = ref<CustomPlaylist>()
+const menuInfo = ref<CustomPlaylist>({ id: '', title: '', description: '', count: 0 })
 
 watchEffect(() => {
   menuInfo.value = [...menus.value, ...userMenus.value].find(item => item.id === props.id)!
@@ -49,7 +49,7 @@ watchEffect(() => {
 
       <!-- 歌曲列表项 -->
       <div class="mt-2">
-        <List :music-list="musicList" />
+        <List :id="id" :music-list="musicList" />
 
         <div v-if="musicList.length === 0" class="py-10 text-center text-sm text-stone-500">
           暂无音乐~

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { usePlayerStore } from '@/stores/player'
 import Item from './Item.vue'
+import PlaylistMenu from './PlaylistMenu.vue'
 
 const props = defineProps<{
   musicList: AudioMetadata[]
+  id: string
 }>()
 
 const playerStore = usePlayerStore()
@@ -29,11 +31,15 @@ function handlePlayFromStart(music: AudioMetadata) {
       :class="{ 'bg-stone-100 dark:bg-stone-800': music.path === playerStore.currentMusic?.path }"
       @dblclick="handlePlayFromStart(music)"
     >
-      <Item
-        :music="music"
-        :playing="music.path === playerStore.currentMusic?.path && playerStore.playing"
-        @play="handlePlay(music)"
-      />
+      <div class="w-full">
+        <PlaylistMenu :id="id" :music="music" @play="handlePlayFromStart(music)">
+          <Item
+            :music="music"
+            :playing="music.path === playerStore.currentMusic?.path && playerStore.playing"
+            @play="handlePlay(music)"
+          />
+        </PlaylistMenu>
+      </div>
     </ToggleGroupItem>
   </ToggleGroup>
 </template>

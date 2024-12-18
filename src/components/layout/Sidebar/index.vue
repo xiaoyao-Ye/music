@@ -4,6 +4,7 @@ import { randomUUID } from '@/lib'
 import CreateListDialog from './CreateListDialog.vue'
 
 const router = useRouter()
+router.push('/')
 
 const active = ref(LOCAL_UUID)
 const userMenus = useStorage<CustomPlaylist[]>(USER_MENU_INFO, [])
@@ -92,8 +93,10 @@ function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
               class="h-full w-full object-cover"
             >
           </div>
-          <div>
-            <div>{{ menu.title }}</div>
+          <div class="flex-1 overflow-hidden">
+            <div class="truncate">
+              {{ menu.title }}
+            </div>
             <div class="text-sm text-stone-500">
               {{ menu.count }} 首
             </div>
