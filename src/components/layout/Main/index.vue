@@ -29,7 +29,7 @@ const { y: scrollTopY } = useScroll(scrollTopEl, { behavior: 'smooth' })
 
     <div
       ref="scrollTopEl"
-      class="flex-1 overflow-y-scroll"
+      class="flex-1 overflow-hidden"
     >
       <RouterView />
     </div>

@@ -20,10 +20,12 @@ watchEffect(() => {
   const list = useStorage<AudioMetadata[]>(props.id, [])
   musicList.value = list.value
 })
+
+const { list, containerProps, wrapperProps } = useVirtualList(musicList, { itemHeight: 60, overscan: 10 })
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
+  <div v-bind="containerProps" class="h-full flex flex-col">
     <Header
       :info="menuInfo"
       :music-list="musicList"
@@ -49,8 +51,8 @@ watchEffect(() => {
       </div>
 
       <!-- 歌曲列表项 -->
-      <div class="mt-2">
-        <List :id="id" :music-list="musicList" />
+      <div v-bind="wrapperProps">
+        <List :id="id" :music-list="musicList" :list="list" />
 
         <div v-if="musicList.length === 0" class="py-10 text-center text-sm text-stone-500">
           暂无音乐~
