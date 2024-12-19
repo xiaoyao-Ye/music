@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { LOCAL_UUID, MENU_INFO } from '@/config'
+import { MENU_INFO } from '@/config'
+import { LOCAL_UUID } from '@/config/menus'
 import { usePlayerStore } from '@/stores/player'
 import { PlayMode } from '@/stores/player/playList'
 import { computed } from 'vue'

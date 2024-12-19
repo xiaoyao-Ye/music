@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CreateListDialog from '@/components/CreateListDialog.vue'
-import { LOCAL_UUID, MENU_INFO, USER_MENU_INFO } from '@/config'
-import { SYSTEM_MENUS } from '@/config/menus'
+import { MENU_INFO, USER_MENU_INFO } from '@/config'
+import { LOCAL_UUID, SYSTEM_MENUS } from '@/config/menus'
 import { randomUUID } from '@/lib'
 
 const router = useRouter()
