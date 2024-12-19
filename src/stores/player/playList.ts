@@ -44,9 +44,15 @@ export const usePlaylistStore = defineStore('playlist', () => {
 
   function setPlayMode(mode: PlayMode) {
     state.value.playMode = mode
-    if (mode === PlayMode.Random) {
-      state.value.playlists[PlayMode.Random] = getRandomList(state.value.playlists[PlayMode.Sequence])
-    }
+
+    setRandomList(state.value.playlists[PlayMode.Sequence])
+  }
+
+  function setRandomList(list: AudioMetadata[]) {
+    if (state.value.playMode !== PlayMode.Random)
+      return
+
+    state.value.playlists[PlayMode.Random] = getRandomList(list)
   }
 
   function getRandomList(list: AudioMetadata[]) {
@@ -66,6 +72,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
       return
 
     state.value.playlists[PlayMode.Sequence] = list
+    setRandomList(list)
   }
 
   const currentIndex = computed(() => {
