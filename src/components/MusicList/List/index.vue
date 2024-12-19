@@ -19,6 +19,10 @@ function handlePlayFromStart(music: AudioMetadata) {
   playerStore.setPlaylist(props.musicList)
   playerStore.playMusicFromStart(music)
 }
+
+function handlePlayNext(music: AudioMetadata) {
+  playerStore.insertNextTrack(music)
+}
 </script>
 
 <template>
@@ -32,7 +36,12 @@ function handlePlayFromStart(music: AudioMetadata) {
       @dblclick="handlePlayFromStart(music)"
     >
       <div class="w-full">
-        <PlaylistMenu :id="id" :music="music" @play="handlePlayFromStart(music)">
+        <PlaylistMenu
+          :id="id"
+          :music="music"
+          @play="handlePlayFromStart(music)"
+          @play-next="handlePlayNext(music)"
+        >
           <Item
             :music="music"
             :playing="music.path === playerStore.currentMusic?.path && playerStore.playing"

@@ -85,6 +85,25 @@ export const usePlayerStore = defineStore('player', () => {
     updateRecentPlaylist(music)
   }
 
+  // 插入到下一首播放
+  function insertNextTrack(music: AudioMetadata) {
+    // 如果当前没有播放列表，直接播放这首歌
+    if (currentList.value.length === 0) {
+      setPlaylist([music])
+      playMusicFromStart(music)
+      return
+    }
+
+    // 如果歌曲已经在列表中，先移除它
+    const index = currentList.value.findIndex(item => item.path === music.path)
+    if (index !== -1)
+      currentList.value.splice(index, 1)
+
+    // 插入到当前播放歌曲的下一个位置
+    const insertIndex = currentIndex.value + 1
+    currentList.value.splice(insertIndex, 0, music)
+  }
+
   return {
     currentList,
     currentMusic,
@@ -103,5 +122,6 @@ export const usePlayerStore = defineStore('player', () => {
     togglePlayMode,
     setPlayMode,
     setPlaylist,
+    insertNextTrack,
   }
 })

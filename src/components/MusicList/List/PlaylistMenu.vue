@@ -8,7 +8,10 @@ const props = defineProps<{
   id: string
 }>()
 
-defineEmits(['play'])
+const emit = defineEmits<{
+  play: []
+  playNext: []
+}>()
 
 const userMenus = useStorage<CustomPlaylist[]>(USER_MENU_INFO, [])
 
@@ -68,6 +71,10 @@ function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
         <div i-carbon:play class="mr-2" />
         播放
       </ContextMenuItem>
+      <ContextMenuItem @click="emit('playNext')">
+        <div i-carbon:play-filled-alt class="mr-2" />
+        下一首播放
+      </ContextMenuItem>
       <ContextMenuSeparator />
       <ContextMenuSub>
         <ContextMenuSubTrigger>
@@ -80,7 +87,7 @@ function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
               <div i-carbon:add class="mr-2" />
               <span class="truncate">新建列表</span>
             </ContextMenuItem>
-            <ContextMenuSeparator />
+            <ContextMenuSeparator v-if="allPlaylists.length" />
             <ContextMenuItem
               v-for="playlist in allPlaylists"
               :key="playlist.id"
