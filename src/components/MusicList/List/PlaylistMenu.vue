@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import CreateListDialog from '@/components/CreateListDialog.vue'
 import { MENU_INFO, USER_MENU_INFO } from '@/config'
+import { randomUUID } from '@/lib'
 
 const props = defineProps<{
   music: AudioMetadata
@@ -43,6 +45,17 @@ function updateMenuCount(count: number) {
       item.count = count
   })
 }
+
+// 创建新歌单并添加当前音乐
+const router = useRouter()
+const showDialog = ref(false)
+function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
+  const id = randomUUID()
+  userMenus.value.push({ ...form, id, count: 1 })
+  const list = useStorage<AudioMetadata[]>(id, [])
+  list.value.push(props.music)
+  router.push(`/list/${id}`)
+}
 </script>
 
 <template>
@@ -62,7 +75,12 @@ function updateMenuCount(count: number) {
           添加到歌单
         </ContextMenuSubTrigger>
         <ContextMenuSubContent class="w-40">
-          <div class="max-h-[200px] overflow-y-auto">
+          <div class="max-h-[200px] overflow-x-hidden overflow-y-auto">
+            <ContextMenuItem @click="showDialog = true">
+              <div i-carbon:add class="mr-2" />
+              <span class="truncate">新建列表</span>
+            </ContextMenuItem>
+            <ContextMenuSeparator />
             <ContextMenuItem
               v-for="playlist in allPlaylists"
               :key="playlist.id"
@@ -81,4 +99,9 @@ function updateMenuCount(count: number) {
       </ContextMenuItem>
     </ContextMenuContent>
   </ContextMenu>
+
+  <CreateListDialog
+    v-model="showDialog"
+    @submit="handleCreateList"
+  />
 </template>
