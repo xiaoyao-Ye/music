@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import CreateListDialog from '@/components/CreateListDialog.vue'
 import { LOCAL_UUID, MENU_INFO, USER_MENU_INFO } from '@/config'
+import { SYSTEM_MENUS } from '@/config/menus'
 import { randomUUID } from '@/lib'
 
 const router = useRouter()
@@ -8,11 +9,7 @@ router.push('/')
 
 const active = ref(LOCAL_UUID)
 const userMenus = useStorage<CustomPlaylist[]>(USER_MENU_INFO, [])
-const menus = useStorage<CustomPlaylist[]>(MENU_INFO, [
-  { id: randomUUID(), icon: 'i-carbon-favorite', title: '喜欢', description: '喜欢的音乐', count: 0 },
-  { id: randomUUID(), icon: 'i-carbon-recently-viewed', title: '最近播放', description: '最近播放的音乐', count: 0 },
-  { id: LOCAL_UUID, icon: 'i-carbon-download', title: '本地和下载', description: '本地和下载的音乐', count: 0 },
-])
+const menus = useStorage<CustomPlaylist[]>(MENU_INFO, SYSTEM_MENUS)
 
 function handleMenuClick(menu: CustomPlaylist) {
   const url = menu.title === '本地和下载' ? '/' : `/list/${menu.id}`
