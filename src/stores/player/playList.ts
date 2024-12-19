@@ -71,7 +71,7 @@ export const usePlaylistStore = defineStore('playlist', () => {
     if (list.length === 0)
       return
 
-    state.value.playlists[PlayMode.Sequence] = list
+    state.value.playlists[PlayMode.Sequence] = [...list]
     setRandomList(list)
   }
 

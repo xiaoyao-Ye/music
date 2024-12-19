@@ -11,11 +11,12 @@ const props = defineProps<{
 
 const menus = useStorage<CustomPlaylist[]>(MENU_INFO, [])
 const userMenus = useStorage<CustomPlaylist[]>(USER_MENU_INFO, [])
+const menuList = [...menus.value, ...userMenus.value] // 避免更新菜单 count 属性时触发 watchEffect
 const musicList = ref<AudioMetadata[]>([])
 const menuInfo = ref<CustomPlaylist>({ id: '', title: '', description: '', count: 0 })
 
 watchEffect(() => {
-  menuInfo.value = [...menus.value, ...userMenus.value].find(item => item.id === props.id)!
+  menuInfo.value = menuList.find(item => item.id === props.id)!
   const list = useStorage<AudioMetadata[]>(props.id, [])
   musicList.value = list.value
 })
