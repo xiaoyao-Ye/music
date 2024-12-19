@@ -23,6 +23,10 @@ function handlePlayFromStart(music: AudioMetadata) {
 function handlePlayNext(music: AudioMetadata) {
   playerStore.insertNextTrack(music)
 }
+
+watchEffect(() => {
+  playerStore.isPlayingInList = props.musicList.some(music => music.path === playerStore.currentMusic?.path)
+})
 </script>
 
 <template>

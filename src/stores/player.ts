@@ -13,6 +13,8 @@ export const usePlayerStore = defineStore('player', () => {
   const { playing, muted, volume, currentTime, duration, volumePercent, progressPercent } = storeToRefs(playerCoreStore)
   const { audio, play, toggleMute } = playerCoreStore
 
+  const isPlayingInList = ref(false)
+
   onMounted(() => {
     audio.muted = muted.value
     audio.volume = volume.value
@@ -105,6 +107,7 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   return {
+    isPlayingInList,
     currentList,
     currentMusic,
     playMode,

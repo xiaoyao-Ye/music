@@ -38,7 +38,7 @@ const { y: scrollTopY } = useScroll(scrollTopEl, { behavior: 'smooth' })
   <div class="fixed bottom-24 right-6 z-10 flex flex-col gap-2">
     <!-- 定位到当前音乐按钮 -->
     <Button
-      v-show="playerStore.currentMusic"
+      v-show="playerStore.isPlayingInList"
       class="rounded-full shadow-lg transition-transform"
       variant="ghost"
       size="icon"
