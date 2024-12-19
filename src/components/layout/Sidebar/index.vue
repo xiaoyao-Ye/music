@@ -5,9 +5,9 @@ import { LOCAL_UUID, SYSTEM_MENUS } from '@/config/menus'
 import { randomUUID } from '@/lib'
 
 const router = useRouter()
+const route = useRoute('/list/[id]')
 router.push('/')
 
-const active = ref(LOCAL_UUID)
 const userMenus = useStorage<CustomPlaylist[]>(USER_MENU_INFO, [])
 const menus = useStorage<CustomPlaylist[]>(MENU_INFO, SYSTEM_MENUS)
 
@@ -16,13 +16,16 @@ function handleMenuClick(menu: CustomPlaylist) {
   router.push(url)
 }
 
+const active = ref(LOCAL_UUID)
 const showDialog = ref(false)
+watchEffect(() => {
+  active.value = route.path === '/' ? LOCAL_UUID : route.params.id
+})
 function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
   const id = randomUUID()
   userMenus.value.push({ ...form, id, count: 0 })
   useStorage(id, [])
   router.push(`/list/${id}`)
-  active.value = id
 }
 </script>
 
