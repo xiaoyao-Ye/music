@@ -24,20 +24,36 @@ watchEffect(() => {
   musicList.value = list.value
 })
 
-const { list, containerProps, wrapperProps } = useVirtualList(musicList, { itemHeight: 60, overscan: 10 })
+const itemHeight = 60
+const topBarHeight = 318 + 45
+// 超过 70 个项目时, 滚动范围太大可能会导致页面空白
+// 用于处理大范围滚动空白 scrollTop 无动画, scrollTopY 有动画
+const blankCount = 70
 
-const { y: scrollTopY } = useScroll(containerProps.ref, { behavior: 'smooth' })
+const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(musicList, { itemHeight, overscan: 12 })
+
+const { y: scrollTopY } = useScroll(containerProps.ref, { behavior: 'smooth', throttle: 400 })
 
 function scrollToCurrentMusic() {
   // isPlayingInList 为 true 一定是有值的
   const index = musicList.value.findIndex(item => item.path === playerStore.currentMusic?.path)
   const containerHeight = containerProps.ref.value?.clientHeight || 0
   // 计算目标位置（顶部信息栏 + 列表头部 + 当前音乐位置 - 容器高度的一半 + 单个项目高度的一半）
-  const targetPosition = 318 + 45 + (index * 60) - (containerHeight / 2) + 30
+  const targetPosition = topBarHeight + (index * itemHeight) - (containerHeight / 2) + itemHeight / 2
+  const diffValue = scrollTopY.value - targetPosition
+
+  if (Math.abs(diffValue) > itemHeight * blankCount) {
+    const targetIndex = diffValue > 0 ? index + blankCount : index - blankCount
+    scrollTo(targetIndex)
+  }
+
   scrollTopY.value = Math.max(0, targetPosition)
 }
 
 function scrollToTop() {
+  if (scrollTopY.value > itemHeight * blankCount)
+    scrollTo(blankCount)
+
   scrollTopY.value = 0
 }
 </script>
