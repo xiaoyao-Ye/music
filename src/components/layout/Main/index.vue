@@ -1,17 +1,4 @@
 <script setup lang="ts">
-import { usePlayerStore } from '@/stores/player'
-
-const playerStore = usePlayerStore()
-
-// 滚动到当前播放的音乐
-function scrollToCurrentMusic() {
-  const currentMusicEl = document.querySelector(`[value="${playerStore.currentMusic!.path}"]`)
-  if (currentMusicEl)
-    currentMusicEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
-}
-
-const scrollTopEl = ref<HTMLElement>()
-const { y: scrollTopY } = useScroll(scrollTopEl, { behavior: 'smooth' })
 </script>
 
 <template>
@@ -27,37 +14,10 @@ const { y: scrollTopY } = useScroll(scrollTopEl, { behavior: 'smooth' })
       </button>
     </div>
 
-    <div
-      ref="scrollTopEl"
-      class="flex-1 overflow-hidden"
-    >
+    <div class="flex-1 overflow-hidden">
       <RouterView />
     </div>
   </main>
-  <!-- 悬浮按钮组 -->
-  <div class="fixed bottom-24 right-6 z-10 flex flex-col gap-2">
-    <!-- 定位到当前音乐按钮 -->
-    <Button
-      v-show="playerStore.isPlayingInList"
-      class="rounded-full shadow-lg transition-transform"
-      variant="ghost"
-      size="icon"
-      @click="scrollToCurrentMusic"
-    >
-      <div i-carbon:airport-location class="text-lg" />
-    </Button>
-
-    <!-- 回到顶部按钮 -->
-    <Button
-      v-show="scrollTopY > 300"
-      class="rounded-full shadow-lg transition-transform"
-      variant="ghost"
-      size="icon"
-      @click="scrollTopY = 0"
-    >
-      <div i-carbon:arrow-up class="text-lg" />
-    </Button>
-  </div>
 </template>
 
 <style scoped>

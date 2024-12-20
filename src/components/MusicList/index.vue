@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { MENU_INFO, USER_MENU_INFO } from '@/config'
+import { usePlayerStore } from '@/stores/player'
 import Footer from './Footer/index.vue'
 import Header from './Header/index.vue'
 import List from './List/index.vue'
@@ -8,6 +9,8 @@ const props = defineProps<{
   id: string
   showImport?: boolean
 }>()
+
+const playerStore = usePlayerStore()
 
 const menus = useStorage<CustomPlaylist[]>(MENU_INFO, [])
 const userMenus = useStorage<CustomPlaylist[]>(USER_MENU_INFO, [])
@@ -22,6 +25,21 @@ watchEffect(() => {
 })
 
 const { list, containerProps, wrapperProps } = useVirtualList(musicList, { itemHeight: 60, overscan: 10 })
+
+const { y: scrollTopY } = useScroll(containerProps.ref, { behavior: 'smooth' })
+
+function scrollToCurrentMusic() {
+  // isPlayingInList 为 true 一定是有值的
+  const index = musicList.value.findIndex(item => item.path === playerStore.currentMusic?.path)
+  const containerHeight = containerProps.ref.value?.clientHeight || 0
+  // 计算目标位置（顶部信息栏 + 列表头部 + 当前音乐位置 - 容器高度的一半 + 单个项目高度的一半）
+  const targetPosition = 318 + 45 + (index * 60) - (containerHeight / 2) + 30
+  scrollTopY.value = Math.max(0, targetPosition)
+}
+
+function scrollToTop() {
+  scrollTopY.value = 0
+}
 </script>
 
 <template>
@@ -61,6 +79,30 @@ const { list, containerProps, wrapperProps } = useVirtualList(musicList, { itemH
 
       <Footer :music-list="musicList" />
     </div>
+  </div>
+  <!-- 悬浮按钮组 -->
+  <div class="fixed bottom-24 right-6 z-10 flex flex-col gap-2">
+    <!-- 定位到当前音乐按钮 -->
+    <Button
+      v-show="playerStore.isPlayingInList"
+      class="rounded-full shadow-lg transition-transform"
+      variant="ghost"
+      size="icon"
+      @click="scrollToCurrentMusic"
+    >
+      <div i-carbon:airport-location class="text-lg" />
+    </Button>
+
+    <!-- 回到顶部按钮 -->
+    <Button
+      v-show="scrollTopY > 300"
+      class="rounded-full shadow-lg transition-transform"
+      variant="ghost"
+      size="icon"
+      @click="scrollToTop"
+    >
+      <div i-carbon:arrow-up class="text-lg" />
+    </Button>
   </div>
 </template>
 
