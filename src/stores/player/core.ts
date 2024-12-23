@@ -21,7 +21,10 @@ export const usePlayerCoreStore = defineStore('playerCore', () => {
     playing.value = false
     mediaSessionStore.updateMediaPlayState(false)
   })
+  const isDragging = ref(false)
   useEventListener(audio, 'timeupdate', () => {
+    if (isDragging.value)
+      return
     currentTime.value = audio.currentTime
   })
   useEventListener(audio, 'loadedmetadata', () => {
@@ -39,14 +42,20 @@ export const usePlayerCoreStore = defineStore('playerCore', () => {
     },
   })
 
+  const debounceFn = useDebounceFn(() => {
+    audio.currentTime = currentTime.value
+    isDragging.value = false
+  }, 400)
+
   // 进度控制 - 直接返回数组格式
   const progressPercent = computed({
     get: () => {
       return [(currentTime.value / duration.value) * 100]
     },
     set: ([value]: number[]) => {
+      isDragging.value = true
       currentTime.value = (value / 100) * duration.value
-      audio.currentTime = currentTime.value
+      debounceFn()
     },
   })
 
