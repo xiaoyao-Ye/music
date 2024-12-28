@@ -1,66 +1,87 @@
 <script setup lang="ts">
 import type { UseVirtualListItem } from '@vueuse/core'
 import { usePlayerStore } from '@/stores/player'
+import { usePlaylistStore } from '@/stores/playList'
 import Item from './Item.vue'
 import PlaylistMenu from './PlaylistMenu.vue'
 
 const props = defineProps<{
   musicList: AudioMetadata[]
-  id: string
   list: UseVirtualListItem<AudioMetadata>[]
 }>()
 
 const playerStore = usePlayerStore()
+const playlistStore = usePlaylistStore()
 
 function handlePlay(music: AudioMetadata) {
-  playerStore.setPlaylist(props.musicList)
-  playerStore.playMusic(music)
+  playlistStore.setPlaylist(props.musicList)
+  if (isCurrentMusicId(music)) {
+    playerStore.togglePlayPause()
+  }
+  else {
+    playerStore.playMusicFromStart(music)
+  }
 }
 
 function handlePlayFromStart(music: AudioMetadata) {
-  playerStore.setPlaylist(props.musicList)
+  playlistStore.setPlaylist(props.musicList)
   playerStore.playMusicFromStart(music)
 }
 
 function handlePlayNext(music: AudioMetadata) {
-  playerStore.insertNextTrack(music)
+  // 如果当前没有播放列表，直接播放这首歌
+  if (playlistStore.currentList.length === 0) {
+    playlistStore.setPlaylist([music])
+    playerStore.playMusicFromStart(music)
+    return
+  }
+
+  playlistStore.insertNextTrack(music)
 }
 
-watchEffect(() => {
-  playerStore.isPlayingInList = props.musicList.some(music => music.path === playerStore.currentMusic?.path)
-})
+function isCurrentMusicId(music: AudioMetadata) {
+  return music.id === playlistStore.currentMusic?.id
+}
+
+const ctxMusic = ref<AudioMetadata>() as Ref<AudioMetadata>
+function handleContextmenu(event: Event) {
+  const item = (event.target as HTMLElement)?.closest('.group')
+  // 如果不是 item 元素, 则不处理
+  if (!item)
+    return event.preventDefault()
+
+  const id = item.getAttribute('value')
+  ctxMusic.value = props.musicList.find(music => music.id === Number(id))!
+}
 </script>
 
 <template>
-  <ToggleGroup type="single" class="flex-col gap-0">
-    <ToggleGroupItem
-      v-for="({ data: music }) in list"
-      :key="music.path"
-      :value="music.path"
-      class="group mt-1 h-auto w-full"
-      :class="{ 'bg-stone-100 dark:bg-stone-800': music.path === playerStore.currentMusic?.path }"
-      @dblclick="handlePlayFromStart(music)"
+  <PlaylistMenu
+    :music="ctxMusic"
+    @play="handlePlayFromStart(ctxMusic)"
+    @play-next="handlePlayNext(ctxMusic)"
+  >
+    <ToggleGroup
+      type="single" class="flex-col gap-0"
+      @contextmenu="handleContextmenu"
     >
-      <div class="w-full">
-        <PlaylistMenu
-          :id="id"
+      <ToggleGroupItem
+        v-for="({ data: music }) in list"
+        :key="music.id"
+        :value="music.id.toString()"
+        class="group mt-1 h-auto w-full"
+        :class="{ 'bg-stone-100 dark:bg-stone-800': isCurrentMusicId(music) }"
+        @dblclick="handlePlayFromStart(music)"
+      >
+        <Item
           :music="music"
-          @play="handlePlayFromStart(music)"
-          @play-next="handlePlayNext(music)"
-        >
-          <Item
-            :music="music"
-            :playing="music.path === playerStore.currentMusic?.path && playerStore.playing"
-            @play="handlePlay(music)"
-          />
-        </PlaylistMenu>
-      </div>
-    </ToggleGroupItem>
-  </ToggleGroup>
+          :playing="isCurrentMusicId(music) && playerStore.playing"
+          @play="handlePlay(music)"
+        />
+      </ToggleGroupItem>
+    </ToggleGroup>
+  </PlaylistMenu>
 </template>
 
 <style scoped>
-.group:hover {
-  @apply bg-stone-50 dark:bg-stone-900;
-}
 </style>

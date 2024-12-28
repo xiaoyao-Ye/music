@@ -11,11 +11,12 @@ interface Window {
 }
 
 interface AudioMetadata {
+  id: number
   path: string
   title: string
   artist?: string
   album?: string
-  duration?: number
+  duration: number
   cover?: string
 }
 
@@ -23,7 +24,7 @@ interface CustomPlaylist {
   id: string
   title: string
   description: string
-  coverImage?: string
-  icon?: string
+  cover?: string
   count: number
+  icon?: string
 }

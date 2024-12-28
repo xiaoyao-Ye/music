@@ -16,7 +16,12 @@ const isImporting = ref(false)
 async function handleSelectDirectory() {
   try {
     isImporting.value = true
+    // console.log('选择目录')
     const files = await window.ipcRenderer.invoke('select-directory')
+    if (!files.length)
+      return
+
+    // console.log('======= files ( ImportMusic.vue ) =======\n', files)
     emit('files', files)
   }
   catch (error) {

@@ -61,6 +61,8 @@ export const usePlayerCoreStore = defineStore('playerCore', () => {
 
   function play(music: AudioMetadata) {
     audio.src = `music://${music.path}`
+    // audio.src = `file://${music.path}`
+    // audio.src = `file://${music.path}`
     audio.play()
     mediaSessionStore.updateMediaMetadata(music)
     mediaSessionStore.updateMediaPlayState(true)

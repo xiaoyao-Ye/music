@@ -1,95 +1,12 @@
 /* eslint-disable node/prefer-global/process */
-import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { promisify } from 'node:util'
-import { app, BrowserWindow, dialog, ipcMain, protocol, shell } from 'electron'
-import { parseFile } from 'music-metadata'
-
-// 添加这些新函数
-async function processAudioFile(filePath: string) {
-  try {
-    const metadata = await parseFile(filePath)
-    // const picture = metadata.common.picture?.[0]
-
-    // 将 Uint8Array 转换为 Buffer
-
-    // const buffer = Buffer.from(picture.data)
-
-    // 将 Buffer 转换为 Base64 字符串
-    // const base64String = buffer.toString('base64')
-
-    return {
-      path: filePath,
-      title: metadata.common.title || path.basename(filePath),
-      artist: metadata.common.artist || '未知艺术家',
-      album: metadata.common.album || '未知专辑',
-      duration: metadata.format.duration,
-      // cover: `data:${picture.format};base64,${base64String}`,
-    }
-  }
-  catch (error) {
-    console.error(`处理文件 ${filePath} 时出错:`, error)
-    return null
-  }
-}
-
-async function processDirectory(dirPath: string) {
-  const readdir = promisify(fs.readdir)
-  const stat = promisify(fs.stat)
-
-  try {
-    const files = await readdir(dirPath)
-    const audioFiles = []
-
-    for (const file of files) {
-      const filePath = path.join(dirPath, file)
-      const stats = await stat(filePath)
-
-      // eslint-disable-next-line regexp/no-unused-capturing-group
-      if (stats.isFile() && /\.(mp3|wav|ogg|flac|m4a)$/i.test(file)) {
-        const metadata = await processAudioFile(filePath)
-        if (metadata)
-          audioFiles.push(metadata)
-      }
-    }
-
-    return audioFiles
-  }
-  catch (error) {
-    console.error('处理目录时出错:', error)
-    return []
-  }
-}
-
-// 在 ipcMain 处理程序部分添加
-ipcMain.handle('select-files', async () => {
-  const result = await dialog.showOpenDialog({
-    properties: ['openFile', 'multiSelections'],
-    filters: [
-      { name: '音频文件', extensions: ['mp3', 'wav', 'ogg', 'flac', 'm4a'] },
-    ],
-  })
-
-  if (!result.canceled) {
-    const metadataPromises = result.filePaths.map(processAudioFile)
-    const metadata = await Promise.all(metadataPromises)
-    return metadata.filter(item => item !== null)
-  }
-  return []
-})
-
-ipcMain.handle('select-directory', async () => {
-  const result = await dialog.showOpenDialog({
-    properties: ['openDirectory'],
-  })
-
-  if (!result.canceled) {
-    return await processDirectory(result.filePaths[0])
-  }
-  return []
-})
+import { app, BrowserWindow, protocol, shell } from 'electron'
+import { initializeDatabase } from './database/data-source'
+import './file'
+import './store'
+import './database/operations'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -134,12 +51,14 @@ async function createWindow() {
   win = new BrowserWindow({
     title: 'Music',
     icon: path.join(process.env.VITE_PUBLIC, 'voice.iconset/icon_512x512.png'),
-    width: 1380,
+    width: 1266,
     height: 838,
-    minWidth: 996,
-    minHeight: 600,
+    // minWidth: 996,
+    minWidth: 1046,
+    minHeight: 670,
     webPreferences: {
       preload,
+      // webSecurity: false,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
       // nodeIntegration: true,
 
@@ -172,16 +91,33 @@ async function createWindow() {
   // win.webContents.on('will-navigate', (event, url) => { }) #344
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // const win = BrowserWindow.getFocusedWindow()
+  // win?.webContents.send('main-process-message', '创建窗口完成')
+
+  // 初始化数据库
+  await initializeDatabase()
+
+  // win?.webContents.send('main-process-message', '初始化数据库完成')
   // 注册自定义协议
+  // protocol.handle('music', (request) => {
+  //   console.log('======= request ( index.ts ) =======\n', request)
+  //   const filePath = decodeURI(request.url.replace('music://', ''))
+  //   const url = pathToFileURL(filePath.toString())
+  //   console.log('======= url ( index.ts ) =======\n', url)
+  //   // return net.fetch(pathToFileURL(filePath).toString())
+  //   return net.fetch(url.toString())
+  // })
+
   protocol.registerFileProtocol('music', (request, callback) => {
-    const filePath = decodeURI(request.url.replace('music://', ''))
+    const url = request.url.replace(/^music:\/\//, '')
+    // Decode URL to prevent errors when loading filenames with UTF-8 chars or chars like "#"
+    const decodedUrl = decodeURI(url) // Needed in case URL contains spaces
     try {
-      return callback(filePath)
+      return callback(decodedUrl)
     }
     catch (error) {
-      console.error(error)
-      return callback({ error: -2 })
+      console.error('ERROR: registerLocalResourceProtocol: Could not get file path:', error)
     }
   })
 
@@ -214,19 +150,19 @@ app.on('activate', () => {
 })
 
 // New window example arg: new windows url
-ipcMain.handle('open-win', (_, arg) => {
-  const childWindow = new BrowserWindow({
-    webPreferences: {
-      preload,
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-  })
+// ipcMain.handle('open-win', (_, arg) => {
+//   const childWindow = new BrowserWindow({
+//     webPreferences: {
+//       preload,
+//       nodeIntegration: true,
+//       contextIsolation: false,
+//     },
+//   })
 
-  if (VITE_DEV_SERVER_URL) {
-    childWindow.loadURL(`${VITE_DEV_SERVER_URL}#${arg}`)
-  }
-  else {
-    childWindow.loadFile(indexHtml, { hash: arg })
-  }
-})
+//   if (VITE_DEV_SERVER_URL) {
+//     childWindow.loadURL(`${VITE_DEV_SERVER_URL}#${arg}`)
+//   }
+//   else {
+//     childWindow.loadFile(indexHtml, { hash: arg })
+//   }
+// })

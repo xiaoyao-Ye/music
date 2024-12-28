@@ -10,14 +10,14 @@ onKeyStroke(' ', (e) => {
     return
   // 阻止空格键的默认行为（页面滚动）
   e.preventDefault()
-  playerStore.playMusic()
+  playerStore.togglePlayPause()
 }, { eventName: 'keydown' })
 
 // 初始化时添加媒体按键监听
 onMounted(() => {
   const handleMediaKeys = (type: MediaSessionAction) => {
     if (type === 'play' || type === 'pause')
-      playerStore.playMusic()
+      playerStore.togglePlayPause()
     else if (type === 'previoustrack')
       playerStore.prevMusic()
     else if (type === 'nexttrack')

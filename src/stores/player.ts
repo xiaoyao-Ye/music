@@ -1,19 +1,17 @@
-import { MENU_INFO } from '@/config'
-import { RECENT_UUID } from '@/config/menus'
 import { defineStore, storeToRefs } from 'pinia'
 import { usePlayerCoreStore } from './player/core'
-import { PlayMode, usePlaylistStore } from './player/playList'
+import { PlayMode, usePlaylistStore } from './playList'
+import { useUserListStore } from './userList'
 
 export const usePlayerStore = defineStore('player', () => {
   const playerCoreStore = usePlayerCoreStore()
+  const userListStore = useUserListStore()
   const playlistStore = usePlaylistStore()
 
   const { currentList, currentMusic, currentIndex, playMode } = storeToRefs(playlistStore)
-  const { setCurrentMusic, setPlaylist, setPlayMode, togglePlayMode } = playlistStore
   const { playing, muted, volume, currentTime, duration, volumePercent, progressPercent } = storeToRefs(playerCoreStore)
   const { audio, play, toggleMute } = playerCoreStore
-
-  const isPlayingInList = ref(false)
+  const { addToHistoryList } = userListStore
 
   onMounted(() => {
     audio.muted = muted.value
@@ -25,26 +23,6 @@ export const usePlayerStore = defineStore('player', () => {
   useEventListener(audio, 'ended', () => {
     playMode.value === PlayMode.Loop ? audio.play() : nextMusic()
   })
-
-  // 更新最近播放列表
-  function updateRecentPlaylist(music: AudioMetadata) {
-    const recentList = useStorage<AudioMetadata[]>(RECENT_UUID, [])
-    const menus = useStorage<CustomPlaylist[]>(MENU_INFO, [])
-
-    const index = recentList.value.findIndex(item => item.path === music.path)
-    if (index !== -1)
-      recentList.value.splice(index, 1)
-
-    recentList.value.unshift(music)
-
-    if (recentList.value.length > 300)
-      recentList.value.pop()
-      // recentList.value = recentList.value.slice(0, 300)
-
-    const recentPlaylist = menus.value.find(item => item.id === RECENT_UUID)
-    if (recentPlaylist)
-      recentPlaylist.count = recentList.value.length
-  }
 
   function prevMusic() {
     if (currentList.value.length === 0)
@@ -69,48 +47,20 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   // 播放控制
-  function playMusic(music: AudioMetadata | undefined = currentMusic.value) {
-    if (!music)
+  function togglePlayPause() {
+    if (!currentMusic.value)
       return
 
-    if (currentMusic.value?.path === music.path) {
-      playing.value ? audio.pause() : audio.play()
-    }
-    else {
-      playMusicFromStart(music)
-    }
+    playing.value ? audio.pause() : audio.play()
   }
 
   function playMusicFromStart(music: AudioMetadata) {
-    setCurrentMusic(music)
+    playlistStore.setCurrentMusic(music)
     play(music)
-    updateRecentPlaylist(music)
-  }
-
-  // 插入到下一首播放
-  function insertNextTrack(music: AudioMetadata) {
-    // 如果当前没有播放列表，直接播放这首歌
-    if (currentList.value.length === 0) {
-      setPlaylist([music])
-      playMusicFromStart(music)
-      return
-    }
-
-    // 如果歌曲已经在列表中，先移除它
-    const index = currentList.value.findIndex(item => item.path === music.path)
-    if (index !== -1)
-      currentList.value.splice(index, 1)
-
-    // 插入到当前播放歌曲的下一个位置
-    const insertIndex = currentIndex.value + 1
-    currentList.value.splice(insertIndex, 0, music)
+    addToHistoryList(music)
   }
 
   return {
-    isPlayingInList,
-    currentList,
-    currentMusic,
-    playMode,
     playing,
     muted,
     currentTime,
@@ -118,13 +68,9 @@ export const usePlayerStore = defineStore('player', () => {
     volumePercent,
     progressPercent,
     playMusicFromStart,
-    playMusic,
+    togglePlayPause,
     nextMusic,
     prevMusic,
     toggleMute,
-    togglePlayMode,
-    setPlayMode,
-    setPlaylist,
-    insertNextTrack,
   }
 })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { formatDuration } from '@/lib'
 
-const props = defineProps<{
+defineProps<{
   music: AudioMetadata
   playing: boolean
 }>()
@@ -9,7 +9,7 @@ const props = defineProps<{
 const emit = defineEmits(['play'])
 
 function handlePlay() {
-  emit('play', props.music)
+  emit('play')
 }
 </script>
 
@@ -35,7 +35,8 @@ function handlePlay() {
         <!-- 封面图片 -->
         <img
           v-if="music.cover"
-          :src="music.cover"
+          :src="`music://${music.cover}`"
+          decoding="async"
           :alt="music.title"
           class="h-full w-full object-cover"
         >

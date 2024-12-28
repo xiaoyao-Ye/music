@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import type { Playlist } from '@/stores/userList'
 import CreateListDialog from '@/components/CreateListDialog.vue'
-import { MENU_INFO, USER_MENU_INFO } from '@/config'
-import { randomUUID } from '@/lib'
+import { useMenuStore } from '@/stores/menu'
+import { useUserListStore } from '@/stores/userList'
 
 const props = defineProps<{
   music: AudioMetadata
-  id: string
 }>()
 
 const emit = defineEmits<{
@@ -13,57 +13,44 @@ const emit = defineEmits<{
   playNext: []
 }>()
 
-const userMenus = useStorage<CustomPlaylist[]>(USER_MENU_INFO, [])
+const userListStore = useUserListStore()
+const menuStore = useMenuStore()
 
-// 获取所有用户歌单
+// 获取所有其他歌单
 const allPlaylists = computed(() => {
-  return userMenus.value.filter(playlist => playlist.id !== props.id)
+  return menuStore.userMenus.filter(playlist => playlist.id !== menuStore.activeMenu)
 })
 
 // 添加到歌单
-function handleAddToPlaylist(playlist: CustomPlaylist) {
-  const list = useStorage<AudioMetadata[]>(playlist.id, [])
-  // 检查是否已经存在
-  if (!list.value.some(item => item.path === props.music.path)) {
-    list.value.push(props.music)
-    playlist.count = list.value.length
-  }
+async function handleAddToPlaylist(playlistId: number) {
+  const songId = props.music.id
+  await window.ipcRenderer.invoke('db:add-song-to-playlist', playlistId, songId)
 }
 
 // 从当前歌单删除
-function handleDelete() {
-  const list = useStorage<AudioMetadata[]>(props.id, [])
-  const index = list.value.findIndex(item => item.path === props.music.path)
-  if (index !== -1) {
-    list.value.splice(index, 1)
-    updateMenuCount(list.value.length)
-  }
-}
-
-function updateMenuCount(count: number) {
-  const isUserMenu = userMenus.value.some(item => item.id === props.id)
-  const menus = useStorage<CustomPlaylist[]>(isUserMenu ? USER_MENU_INFO : MENU_INFO, [])
-  menus.value.forEach((item) => {
-    if (item.id === props.id)
-      item.count = count
-  })
+async function handleDelete() {
+  userListStore.deleteMusic(props.music)
 }
 
 // 创建新歌单并添加当前音乐
 const router = useRouter()
 const showDialog = ref(false)
-function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
-  const id = randomUUID()
-  userMenus.value.push({ ...form, id, count: 1 })
-  const list = useStorage<AudioMetadata[]>(id, [])
-  list.value.push(props.music)
+async function handleCreateList(form: Omit<Playlist, 'id' | 'count'>) {
+  const playlist = {
+    title: form.title,
+    description: form.description,
+    cover: form.cover,
+  }
+  const id = await window.ipcRenderer.invoke('db:add-playlist', playlist)
+  await handleAddToPlaylist(id)
+  await menuStore.getUserMenus()
   router.push(`/list/${id}`)
 }
 </script>
 
 <template>
   <ContextMenu>
-    <ContextMenuTrigger>
+    <ContextMenuTrigger as="div">
       <slot />
     </ContextMenuTrigger>
     <ContextMenuContent class="w-40">
@@ -91,9 +78,9 @@ function handleCreateList(form: Omit<CustomPlaylist, 'id' | 'count'>) {
             <ContextMenuItem
               v-for="playlist in allPlaylists"
               :key="playlist.id"
-              @click="handleAddToPlaylist(playlist)"
+              @click="handleAddToPlaylist(playlist.id)"
             >
-              <div :class="playlist.icon || 'i-carbon:music'" class="mr-2" />
+              <div i-carbon:music class="mr-2" />
               <span class="truncate">{{ playlist.title }}</span>
             </ContextMenuItem>
           </div>

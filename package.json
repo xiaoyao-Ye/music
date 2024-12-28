@@ -1,5 +1,5 @@
 {
-  "name": "music",
+  "name": "Music",
   "type": "module",
   "version": "0.0.1",
   "private": true,
@@ -29,13 +29,18 @@
   },
   "dependencies": {
     "@vueuse/core": "^12.0.0",
+    "better-sqlite3": "^11.7.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "electron-store": "^10.0.0",
     "lucide-vue-next": "^0.468.0",
     "music-metadata": "^10.6.4",
     "pinia": "^2.3.0",
     "radix-vue": "^1.9.11",
+    "reflect-metadata": "^0.2.2",
+    "sharp": "^0.33.5",
     "tailwind-merge": "^2.5.5",
+    "typeorm": "^0.3.20",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },

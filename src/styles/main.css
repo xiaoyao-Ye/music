@@ -13,10 +13,11 @@ html.dark {
 ::-webkit-scrollbar {
   width: 9px;
   height: 9px;
+  border-radius: 9px;
   background-color: #eee;
 }
 ::-webkit-scrollbar-thumb {
-  border-radius: 2em;
+  border-radius: 9px;
   background-color: #ddd;
 }
 
