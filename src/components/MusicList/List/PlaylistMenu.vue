@@ -22,9 +22,15 @@ const allPlaylists = computed(() => {
 })
 
 // 添加到歌单
-async function handleAddToPlaylist(playlistId: number) {
+async function handleAddToPlaylist(playlistId: number, isNewList: boolean = false) {
   const songId = props.music.id
-  await window.ipcRenderer.invoke('db:add-song-to-playlist', playlistId, songId)
+  const count = await window.ipcRenderer.invoke('db:add-song-to-playlist', playlistId, songId)
+  if (isNewList) {
+    await menuStore.getUserMenus()
+  }
+  else {
+    count !== 0 && menuStore.updateMenuCount(playlistId, count)
+  }
 }
 
 // 从当前歌单删除
@@ -42,8 +48,7 @@ async function handleCreateList(form: Omit<Playlist, 'id' | 'count'>) {
     cover: form.cover,
   }
   const id = await window.ipcRenderer.invoke('db:add-playlist', playlist)
-  await handleAddToPlaylist(id)
-  await menuStore.getUserMenus()
+  await handleAddToPlaylist(id, true)
   router.push(`/list/${id}`)
 }
 </script>
