@@ -3,17 +3,16 @@ import { defineStore } from 'pinia'
 export const useMediaSessionStore = defineStore('mediaSession', () => {
   const isSupport = 'mediaSession' in navigator
 
-  function updateMediaMetadata(music: AudioMetadata) {
+  async function updateMediaMetadata(music: AudioMetadata) {
     if (!isSupport)
       return
 
+    const base64 = await window.ipcRenderer.invoke('file:get-image-base64', music.cover)
     navigator.mediaSession.metadata = new MediaMetadata({
       title: music.title,
       artist: music.artist,
       album: music.album,
-      artwork: music.cover
-        ? [{ src: music.cover, sizes: '512x512', type: 'image/jpeg' }]
-        : undefined,
+      artwork: [{ src: base64 }],
     })
   }
 

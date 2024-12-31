@@ -10,14 +10,15 @@ export const usePlayerStore = defineStore('player', () => {
 
   const { currentList, currentMusic, currentIndex, playMode } = storeToRefs(playlistStore)
   const { playing, muted, volume, currentTime, duration, volumePercent, progressPercent } = storeToRefs(playerCoreStore)
-  const { audio, play, toggleMute } = playerCoreStore
+  const { audio, setAudioSource, toggleMute } = playerCoreStore
   const { addToHistoryList } = userListStore
 
   onMounted(() => {
     audio.muted = muted.value
     audio.volume = volume.value
-    if (currentMusic.value)
-      audio.src = `music://${currentMusic.value.path}`
+    if (currentMusic.value) {
+      setAudioSource(currentMusic.value)
+    }
   })
 
   useEventListener(audio, 'ended', () => {
@@ -56,7 +57,8 @@ export const usePlayerStore = defineStore('player', () => {
 
   function playMusicFromStart(music: AudioMetadata) {
     playlistStore.setCurrentMusic(music)
-    play(music)
+    setAudioSource(music)
+    audio.play()
     addToHistoryList(music)
   }
 

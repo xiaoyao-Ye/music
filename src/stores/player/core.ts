@@ -59,13 +59,9 @@ export const usePlayerCoreStore = defineStore('playerCore', () => {
     },
   })
 
-  function play(music: AudioMetadata) {
+  function setAudioSource(music: AudioMetadata) {
     audio.src = `music://${music.path}`
-    // audio.src = `file://${music.path}`
-    // audio.src = `file://${music.path}`
-    audio.play()
     mediaSessionStore.updateMediaMetadata(music)
-    mediaSessionStore.updateMediaPlayState(true)
   }
 
   // 静音切换
@@ -84,6 +80,7 @@ export const usePlayerCoreStore = defineStore('playerCore', () => {
     volumePercent,
     progressPercent,
     toggleMute,
-    play,
+    setAudioSource,
+    // updateMediaMetadata: mediaSessionStore.updateMediaMetadata,
   }
 })

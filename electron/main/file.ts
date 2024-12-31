@@ -185,3 +185,28 @@ ipcMain.handle('select-image', async () => {
 })
 
 ipcMain.handle('save-playlist-image', async (_, path: string) => saveCoverToFile(path))
+
+/**
+ * 读取本地图片并转换为base64
+ * @param imagePath 图片路径
+ * @returns base64字符串
+ */
+export async function getImageBase64(imagePath: string | undefined) {
+  if (!imagePath)
+    return ''
+  try {
+    const buffer = await fs.promises.readFile(imagePath)
+    const base64 = buffer.toString('base64')
+    const ext = path.basename(imagePath).split('.').pop()?.toLowerCase() || 'jpeg'
+    return `data:image/${ext};base64,${base64}`
+  }
+  catch (error) {
+    console.error('读取图片失败:', error)
+    return null
+  }
+}
+
+// 注册IPC处理程序
+ipcMain.handle('file:get-image-base64', async (_, imagePath: string) => {
+  return getImageBase64(imagePath)
+})
