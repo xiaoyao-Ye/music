@@ -66,13 +66,10 @@ function scrollToTop() {
         <div class="flex-1">
           歌曲
         </div>
-        <div class="w-25">
-          艺人
-        </div>
-        <div class="lg:w-40 sm:w-30">
+        <div class="w-[25%]">
           专辑
         </div>
-        <div class="w-15 text-right">
+        <div class="w-20 text-right">
           时长
         </div>
       </div>

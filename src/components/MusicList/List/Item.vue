@@ -48,9 +48,13 @@ function toggleFavorite() {
           <div i-game-icons:sound-on class="h-full w-full" />
         </div>
       </div>
-      <div class="flex-1 truncate">
-        <!-- <span class="truncate lg:max-w-xs sm:max-w-50"> -->
-        {{ music.title }}
+      <div class="h-10 flex flex-1 flex-col justify-between overflow-hidden">
+        <div class="truncate">
+          {{ music.title }}
+        </div>
+        <div class="truncate text-xs text-stone-500">
+          {{ music.artist }}
+        </div>
       </div>
       <div class="px-2">
         <div
@@ -60,13 +64,10 @@ function toggleFavorite() {
         />
       </div>
     </div>
-    <div class="w-25 text-stone-500">
-      {{ music.artist }}
-    </div>
-    <div class="truncate text-stone-500 lg:w-40 sm:w-30">
+    <div class="w-[25%] truncate text-stone-500">
       {{ music.album }}
     </div>
-    <div class="w-15 text-right text-stone-500">
+    <div class="w-20 text-right text-stone-500">
       {{ formatDuration(music.duration) }}
     </div>
   </div>
