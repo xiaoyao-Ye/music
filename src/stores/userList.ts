@@ -58,15 +58,27 @@ export const useUserListStore = defineStore('userList', () => {
     }
 
     // 刷新列表
-    // await getMusicList(activeMenu.value.toString())
     musicList.value = musicList.value.filter(item => item.id !== songId)
+    menuStore.updateMenuCount(activeMenu.value, musicList.value.length)
     if (activeMenu.value === LOCAL_UUID) {
       // 影响所有列表, 所以重新获取
       await menuStore.getUserMenus()
-      // TODO: defaultMenus 也要更新 count
+      // 更新我喜欢列表和最近播放列表的 count
+      const favoriteCount = await window.ipcRenderer.invoke('db:get-favorite-count')
+      const historyCount = await window.ipcRenderer.invoke('db:get-history-count')
+      menuStore.updateMenuCount(FAVORITE_UUID, favoriteCount)
+      menuStore.updateMenuCount(HISTORY_UUID, historyCount)
     }
-    else {
-      menuStore.updateMenuCount(activeMenu.value, musicList.value.length)
+  }
+
+  async function toggleFavorite(music: AudioMetadata) {
+    await window.ipcRenderer.invoke('db:update-favorite', music.id, !music.isFavorite)
+    music.isFavorite = !music.isFavorite
+    const menu = menuStore.getDefaultMenu(FAVORITE_UUID)
+    menu.count = music.isFavorite ? menu.count + 1 : menu.count - 1
+
+    if (activeMenu.value === FAVORITE_UUID) {
+      musicList.value = musicList.value.filter(item => item.isFavorite)
     }
   }
 
@@ -99,6 +111,7 @@ export const useUserListStore = defineStore('userList', () => {
     musicList,
     getMusicList,
     deleteMusic,
+    toggleFavorite,
     addToHistoryList,
   }
 })

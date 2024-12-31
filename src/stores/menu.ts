@@ -22,6 +22,10 @@ export const useMenuStore = defineStore('menu', () => {
     await getUserMenus()
   })
 
+  function getDefaultMenu(menuId: number) {
+    return defaultMenus.value.find(item => item.id === menuId)!
+  }
+
   /**
    * 更新菜单计数
    * @param menuId 菜单id
@@ -30,7 +34,7 @@ export const useMenuStore = defineStore('menu', () => {
   function updateMenuCount(menuId: number, count?: number) {
     let menu: Playlist
     if ([LOCAL_UUID, HISTORY_UUID, FAVORITE_UUID].includes(menuId)) {
-      menu = defaultMenus.value.find(item => item.id === menuId)!
+      menu = getDefaultMenu(menuId)
     }
     else {
       menu = userMenus.value.find(item => item.id === menuId)!
@@ -44,6 +48,7 @@ export const useMenuStore = defineStore('menu', () => {
     defaultMenus,
     userMenus,
     updateMenuCount,
+    getDefaultMenu,
     getUserMenus,
   }
 })

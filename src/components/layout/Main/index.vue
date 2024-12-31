@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <main class="flex flex-1 flex-col dark:bg-stone-900">
+  <main class="flex flex-1 flex-col overflow-hidden dark:bg-stone-900">
     <!-- 设置区域 -->
     <div class="h-12 flex justify-end gap-2 px-4">
       <button icon-btn>

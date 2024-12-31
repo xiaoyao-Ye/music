@@ -11,6 +11,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   play: []
   playNext: []
+  toggleFavorite: []
 }>()
 
 const userListStore = useUserListStore()
@@ -66,6 +67,10 @@ async function handleCreateList(form: Omit<Playlist, 'id' | 'count'>) {
       <ContextMenuItem @click="emit('playNext')">
         <div i-carbon:play-filled-alt class="mr-2" />
         下一首播放
+      </ContextMenuItem>
+      <ContextMenuItem @click="emit('toggleFavorite')">
+        <div i-carbon:favorite class="mr-2" />
+        添加到我喜欢
       </ContextMenuItem>
       <ContextMenuSeparator />
       <ContextMenuSub>

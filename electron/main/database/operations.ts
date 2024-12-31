@@ -397,6 +397,40 @@ export async function deleteFromPlaylist(playlistId: number, songId: number) {
   }
 }
 
+/**
+ * 获取收藏歌曲数量
+ * @returns 收藏歌曲数量
+ */
+export async function getFavoriteCount() {
+  try {
+    const count = await AppDataSource.manager.count(Song, {
+      where: {
+        isFavorite: true,
+      },
+    })
+    return count
+  }
+  catch (error) {
+    console.error('获取收藏歌曲数量失败:', error)
+    return 0
+  }
+}
+
+/**
+ * 获取播放历史数量
+ * @returns 播放历史数量
+ */
+export async function getHistoryCount() {
+  try {
+    const count = await AppDataSource.manager.count(PlayHistory)
+    return count
+  }
+  catch (error) {
+    console.error('获取播放历史数量失败:', error)
+    return 0
+  }
+}
+
 // const dbOperations = {
 //   getAllSongs,
 //   getFavoriteSongs,
@@ -428,3 +462,5 @@ ipcMain.handle('db:delete-song', (_, songId: number) => deleteSong(songId))
 ipcMain.handle('db:delete-history', (_, songId: number) => deleteHistory(songId))
 ipcMain.handle('db:update-favorite', (_, songId: number, isFavorite: boolean) => updateFavorite(songId, isFavorite))
 ipcMain.handle('db:delete-from-playlist', (_, playlistId: number, songId: number) => deleteFromPlaylist(playlistId, songId))
+ipcMain.handle('db:get-favorite-count', _ => getFavoriteCount())
+ipcMain.handle('db:get-history-count', _ => getHistoryCount())

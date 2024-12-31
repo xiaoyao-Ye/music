@@ -18,6 +18,7 @@ interface AudioMetadata {
   album?: string
   duration: number
   cover?: string
+  isFavorite: boolean
 }
 
 interface CustomPlaylist {

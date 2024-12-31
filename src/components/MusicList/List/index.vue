@@ -2,6 +2,7 @@
 import type { UseVirtualListItem } from '@vueuse/core'
 import { usePlayerStore } from '@/stores/player'
 import { usePlaylistStore } from '@/stores/playList'
+import { useUserListStore } from '@/stores/userList'
 import Item from './Item.vue'
 import PlaylistMenu from './PlaylistMenu.vue'
 
@@ -12,6 +13,7 @@ const props = defineProps<{
 
 const playerStore = usePlayerStore()
 const playlistStore = usePlaylistStore()
+const userListStore = useUserListStore()
 
 function handlePlay(music: AudioMetadata) {
   playlistStore.setPlaylist(props.musicList)
@@ -39,6 +41,10 @@ function handlePlayNext(music: AudioMetadata) {
   playlistStore.insertNextTrack(music)
 }
 
+function toggleFavorite(music: AudioMetadata) {
+  userListStore.toggleFavorite(music)
+}
+
 function isCurrentMusicId(music: AudioMetadata) {
   return music.id === playlistStore.currentMusic?.id
 }
@@ -60,6 +66,7 @@ function handleContextmenu(event: Event) {
     :music="ctxMusic"
     @play="handlePlayFromStart(ctxMusic)"
     @play-next="handlePlayNext(ctxMusic)"
+    @toggle-favorite="toggleFavorite(ctxMusic)"
   >
     <ToggleGroup
       type="single" class="flex-col gap-0"
@@ -77,6 +84,7 @@ function handleContextmenu(event: Event) {
           :music="music"
           :playing="isCurrentMusicId(music) && playerStore.playing"
           @play="handlePlay(music)"
+          @toggle-favorite="toggleFavorite(music)"
         />
       </ToggleGroupItem>
     </ToggleGroup>
