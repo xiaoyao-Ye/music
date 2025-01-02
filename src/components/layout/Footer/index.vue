@@ -25,10 +25,13 @@ const playlistStore = usePlaylistStore()
         </div>
       </div>
 
-      <div class="flex-1 truncate">
-        <span class="text-sm font-medium">
+      <div class="flex flex-1 flex-col justify-around overflow-hidden">
+        <div class="truncate text-sm font-medium">
           {{ playlistStore.currentMusic?.title || '未播放' }}
-        </span>
+        </div>
+        <div class="truncate text-xs text-stone-500 dark:text-stone-400">
+          {{ playlistStore.currentMusic?.artist }}
+        </div>
       </div>
     </div>
 

@@ -27,10 +27,10 @@ const form = reactive<Omit<Playlist, 'id' | 'count'>>({
 
 async function handleCreate() {
   form.title = form.title.trim() ? form.title : '未命名歌单'
-  // console.log('======= form ( CreatePlaylistDialog.vue ) =======\n', form)
+  console.log('======= form ( CreatePlaylistDialog.vue ) =======\n', form)
   const cover = await window.ipcRenderer.invoke('save-playlist-image', form.cover)
   form.cover = cover
-  // console.log('======= cover ( CreatePlaylistDialog.vue ) =======\n', cover)
+  console.log('======= cover ( CreatePlaylistDialog.vue ) =======\n', cover)
   emit('submit', form)
   data.value = false
 }

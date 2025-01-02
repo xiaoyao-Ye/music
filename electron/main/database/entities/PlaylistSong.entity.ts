@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm'
+import { CreateDateColumn, Entity, PrimaryColumn } from 'typeorm'
 
 @Entity()
 export class PlaylistSong {
@@ -8,6 +8,9 @@ export class PlaylistSong {
   @PrimaryColumn('int')
   songId: number
 
-  @Column('int', { default: 0 })
-  sort: number // 在播放列表中的排序位置
+  @CreateDateColumn({ type: 'datetime' })
+  createdAt: Date
+
+  // @Column('int', { default: 0 })
+  // sort: number // 在播放列表中的排序位置
 }

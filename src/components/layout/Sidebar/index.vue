@@ -36,12 +36,15 @@ watchEffect(() => {
 
 const showDialog = ref(false)
 async function handleCreateList(form: Omit<Playlist, 'id' | 'count'>) {
+  console.log('======= form ( index.vue ) =======\n', form)
   const playlist = {
     title: form.title,
     description: form.description,
     cover: form.cover,
   }
+  console.log('======= playlist ( index.vue ) =======\n', playlist)
   const id = await window.ipcRenderer.invoke('db:add-playlist', playlist)
+  console.log('======= id ( index.vue ) =======\n', id)
   await menuStore.getUserMenus()
   router.push(`/list/${id}`)
 }

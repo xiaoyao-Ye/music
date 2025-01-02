@@ -1,4 +1,4 @@
-import { HISTORY_MAX_COUNT } from '@/config'
+// import { HISTORY_MAX_COUNT } from '@/config'
 import { FAVORITE_UUID, HISTORY_UUID, LOCAL_UUID } from '@/config/menus'
 import { defineStore, storeToRefs } from 'pinia'
 import { useMenuStore } from './menu'
@@ -31,7 +31,7 @@ export const useUserListStore = defineStore('userList', () => {
     else {
       musicList.value = await window.ipcRenderer.invoke('db:get-playlist-songs', id)
     }
-    // console.log('======= musicList.value ( userList.ts ) =======\n', musicList.value)
+    console.log('======= musicList.value ( userList.ts ) =======\n', musicList.value)
   }
 
   watchEffect(async () => {
@@ -82,19 +82,22 @@ export const useUserListStore = defineStore('userList', () => {
     }
   }
 
-  function refreshHistoryList(music: AudioMetadata) {
+  // function refreshHistoryList(music: AudioMetadata) {
+  function refreshHistoryList() {
     if (activeMenu.value !== HISTORY_UUID)
       return
 
-    const index = musicList.value.findIndex(item => item.id === music.id)
-    if (index !== -1) {
-      musicList.value.splice(index, 1)
-    }
+    getMusicList(activeMenu.value)
+    // const index = musicList.value.findIndex(item => item.id === music.id)
+    // if (index !== -1) {
+    //   musicList.value.splice(index, 1)
+    // }
 
-    musicList.value.unshift(music)
+    // musicList.value.unshift(music)
+    // musicList.value = [...musicList.value]
 
-    if (musicList.value.length > HISTORY_MAX_COUNT)
-      musicList.value.pop()
+    // if (musicList.value.length > HISTORY_MAX_COUNT)
+    //   musicList.value.pop()
   }
 
   // 更新最近播放列表
@@ -102,7 +105,8 @@ export const useUserListStore = defineStore('userList', () => {
     const count = await window.ipcRenderer.invoke('db:add-history', music.id)
     // console.log('添加播放历史成功', count)
 
-    refreshHistoryList(music)
+    // refreshHistoryList(music)
+    refreshHistoryList()
 
     menuStore.updateMenuCount(HISTORY_UUID, count)
   }

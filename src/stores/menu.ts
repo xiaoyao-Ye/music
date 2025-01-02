@@ -14,7 +14,7 @@ export const useMenuStore = defineStore('menu', () => {
 
   async function getUserMenus() {
     const list = await window.ipcRenderer.invoke('db:get-playlist')
-    // console.log('======= list ( userList.ts ) =======\n', list)
+    console.log('======= list ( userList.ts ) =======\n', list)
     userMenus.value = list
   }
 

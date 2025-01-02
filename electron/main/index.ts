@@ -1,4 +1,3 @@
-/* eslint-disable node/prefer-global/process */
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -96,7 +95,9 @@ app.whenReady().then(async () => {
   // win?.webContents.send('main-process-message', '创建窗口完成')
 
   // 初始化数据库
+  // setTimeout(async () => {
   await initializeDatabase()
+  // }, 5000)
 
   // win?.webContents.send('main-process-message', '初始化数据库完成')
   // 注册自定义协议

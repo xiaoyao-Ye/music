@@ -56,22 +56,27 @@ async function handleFilesUpdate(files: AudioMetadata[]) {
     // TODO: 将新音乐保存到数据库, 考虑一下是否跳过重复的文件
     // for (const music of exportMusics) {
     for (const music of files) {
-      // console.log('======= music ( index.vue ) =======\n', music)
-      await window.ipcRenderer.invoke('db:add-song', {
+      console.log('======= music ( index.vue ) =======\n', music)
+
+      const song = {
         title: music.title,
         artist: music.artist,
         album: music.album,
         duration: music.duration,
         path: music.path,
         cover: music.cover,
-      })
+      }
+      await window.ipcRenderer.invoke('db:add-song', JSON.parse(JSON.stringify(song)))
+      console.log('======= song ( index.vue ) =======\n', song)
     }
 
     // 更新菜单计数
 
     // 等待 nextTick 后刷新列表
     // await nextTick()
+    console.log('======= userListStore.musicList ( index.vue ) =======\n', userListStore.musicList)
     await userListStore.getMusicList(LOCAL_UUID)
+    console.log('======= userListStore.musicList ( index.vue ) =======\n', userListStore.musicList)
     menuStore.updateMenuCount(LOCAL_UUID, userListStore.musicList.length)
   }
   catch (error) {

@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { BrowserWindow, ipcMain } from 'electron'
 import { In } from 'typeorm'
 import { AppDataSource } from './data-source'
 import { PlayHistory } from './entities/PlayHistory.entity'
@@ -107,7 +107,7 @@ export async function getPlaylistSongs(playlistId: string) {
         playlistId: Number(playlistId),
       },
       order: {
-        sort: 'ASC',
+        createdAt: 'DESC',
       },
     })
 
@@ -140,12 +140,17 @@ export async function getPlaylistSongs(playlistId: string) {
  * @returns 添加后的播放列表
  */
 export async function addPlaylist(playlist: Partial<Playlist>) {
+  const win = BrowserWindow.getFocusedWindow()
   try {
+    win?.webContents.send('playlist', playlist)
     const newPlaylist = AppDataSource.manager.create(Playlist, playlist)
+    win?.webContents.send('new-playlist', newPlaylist)
     await AppDataSource.manager.save(Playlist, newPlaylist)
+    win?.webContents.send('new-playlist-id', newPlaylist.id)
     return newPlaylist.id
   }
   catch (error) {
+    win?.webContents.send('error', error)
     console.error('添加播放列表失败:', error)
     return null
   }
@@ -186,6 +191,8 @@ export async function getPlaylistInfo(playlistId: string) {
  * @returns 添加或更新后的歌曲
  */
 export async function addSong(songData: Partial<Song>) {
+  const win = BrowserWindow.getFocusedWindow()
+  win?.webContents.send('add-song', songData)
   try {
     // 先查找是否存在相同路径的歌曲
     const existingSong = await AppDataSource.manager.findOne(Song, {
@@ -209,6 +216,7 @@ export async function addSong(songData: Partial<Song>) {
       // }
 
       await AppDataSource.manager.save(Song, existingSong)
+      win?.webContents.send('add-song-success', existingSong)
       return existingSong
     }
     else {
@@ -231,10 +239,12 @@ export async function addSong(songData: Partial<Song>) {
       //   }
       // }
 
+      win?.webContents.send('add-song-success', song)
       return song
     }
   }
   catch (error) {
+    win?.webContents.send('error', error)
     console.error('添加或更新歌曲失败:', error)
     return null
   }
@@ -260,19 +270,19 @@ export async function addSongToPlaylist(playlistId: number, songId: number) {
       return 0
 
     // 获取当前播放列表中最大的排序值
-    const maxSortResult = await AppDataSource.manager
-      .createQueryBuilder(PlaylistSong, 'playlistSong')
-      .select('MAX(playlistSong.sort)', 'maxSort')
-      .where('playlistSong.playlistId = :playlistId', { playlistId })
-      .getRawOne()
+    // const maxSortResult = await AppDataSource.manager
+    //   .createQueryBuilder(PlaylistSong, 'playlistSong')
+    //   .select('MAX(playlistSong.sort)', 'maxSort')
+    //   .where('playlistSong.playlistId = :playlistId', { playlistId })
+    //   .getRawOne()
 
-    const sort = (maxSortResult?.maxSort ?? -1) + 1
+    // const sort = (maxSortResult?.maxSort ?? -1) + 1
 
     // 创建新的关联记录
     const playlistSong = AppDataSource.manager.create(PlaylistSong, {
       playlistId,
       songId,
-      sort,
+      // sort,
     })
     await AppDataSource.manager.save(PlaylistSong, playlistSong)
 
@@ -306,8 +316,10 @@ export async function addSongToPlaylist(playlistId: number, songId: number) {
 export async function addHistory(songId: number) {
   const history = AppDataSource.manager.create(PlayHistory, { songId, playedAt: new Date() })
   await AppDataSource.manager.save(PlayHistory, history)
+  console.log('======= history ( operations.ts ) =======\n', history)
   // 返回当前播放历史列表总数
   const count = await AppDataSource.manager.count(PlayHistory)
+  console.log('======= count ( operations.ts ) =======\n', count)
   // 如果播放历史列表总数大于 300，则删除更新时间最早的播放历史
   if (count > 300) {
     const oldestHistory = await AppDataSource.manager.findOne(PlayHistory, {
@@ -448,7 +460,19 @@ export async function getHistoryCount() {
 //   return dbOperations[operation](...args)
 // })
 
-ipcMain.handle('db:add-song', (_, songData: Partial<Song>) => addSong(songData))
+ipcMain.handle('db:add-song', (_, songData: Partial<Song>) => {
+  console.log('======= _ ( operations.ts ) =======\n', _)
+  console.log('======= songData ( operations.ts ) =======\n', songData)
+  const win = BrowserWindow.getFocusedWindow()
+  try {
+    addSong(songData)
+    win?.webContents.send('add-song', songData)
+  }
+  catch (error) {
+    win?.webContents.send('error', error)
+    console.error('添加歌曲失败:', error)
+  }
+})
 ipcMain.handle('db:get-all-songs', getAllSongs)
 ipcMain.handle('db:get-playlist-songs', (_, playlistId: string) => getPlaylistSongs(playlistId))
 ipcMain.handle('db:get-history-songs', _ => getHistorySongs())
