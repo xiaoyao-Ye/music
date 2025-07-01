@@ -70,7 +70,7 @@
     "unocss-preset-animations": "^1.1.0",
     "unocss-preset-shadcn": "^0.3.1",
     "unplugin-auto-import": "^0.19.0",
-    "unplugin-vue-components": "^0.28.0",
+    "unplugin-vue-components": "^28.8.0",
     "unplugin-vue-macros": "^2.13.6",
     "unplugin-vue-router": "^0.10.9",
     "vite": "^6.0.3",
